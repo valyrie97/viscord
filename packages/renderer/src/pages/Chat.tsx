@@ -58,7 +58,7 @@ export default () => {
 
   const sendMessage = useCallback(() => {
     if(textBoxRef.current === null) return;
-    send('message', createMessage('Version 2', textBoxRef.current.innerText));
+    send('message', createMessage('Version 3', textBoxRef.current.innerText));
     textBoxRef.current.innerText = '';
   }, []);
 
