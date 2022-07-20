@@ -5,6 +5,8 @@ const electronPath = require('electron');
 const {spawn} = require('child_process');
 const node = 'node' + (process.platform === 'win32' ? '.exe' : '');
 
+const server = !process.argv.includes('--noserver');
+
 /** @type 'production' | 'development'' */
 const mode = process.env.MODE = process.env.MODE || 'development';
 
@@ -45,14 +47,12 @@ const setupServerPackageWatcher = () => {
     plugins: [{
       name: 'reload-server-on-server-package-change',
       writeBundle() {
-        /** Kill electron ff process already exist */
         if (spawnProcess !== null) {
           spawnProcess.off('exit', processDied);
           spawnProcess.kill('SIGINT');
           spawnProcess = null;
         }
 
-        /** Spawn new electron process */
         spawnProcess = spawn(node, ['./index.cjs'], {
           cwd: './packages/server/dist',
         });
@@ -195,7 +195,7 @@ const setupPreloadPackageWatcher = ({ws}) =>
      * See {@link setupMainPackageWatcher} JSDoc
      */
     await setupMainPackageWatcher(rendererWatchServer);
-    await setupServerPackageWatcher();
+    if(server) await setupServerPackageWatcher();
   } catch (e) {
     console.error(e);
     process.exit(1);

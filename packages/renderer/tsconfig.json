@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "impl"
     "module": "esnext",
     "target": "esnext",
     "sourceMap": false,
