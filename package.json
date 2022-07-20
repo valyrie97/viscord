@@ -1,5 +1,5 @@
 {
-  "name": "vite-electron-builder",
+  "name": "viscord",
   "description": "Secure boilerplate for Electron app based on Vite",
   "private": true,
   "engines": {
