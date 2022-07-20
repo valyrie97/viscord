@@ -13,5 +13,8 @@
     "ecmaVersion": 12,
     "sourceType": "module"
   },
-  "no-unused-vars": "off"
+  "rules": {
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off"
+  }
 }

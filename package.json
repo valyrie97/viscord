@@ -26,7 +26,7 @@
     "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
     "test:server": "vitest run -r packages/server --passWithNoTests",
     "watch": "node scripts/watch.js",
-    "lint": "eslint . --ext js,ts,vue",
+    "lint": "eslint . --ext js,ts,tsx",
     "typecheck:main": "tsc --noEmit -p packages/main/tsconfig.json",
     "typecheck:preload": "tsc --noEmit -p packages/preload/tsconfig.json",
     "typecheck:renderer": "vue-tsc --noEmit -p packages/renderer/tsconfig.json",
