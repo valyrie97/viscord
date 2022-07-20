@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "impl"
     "module": "esnext",
     "target": "esnext",
     "sourceMap": false,
@@ -10,28 +9,20 @@
     "isolatedModules": true,
 
     "types" : ["node"],
+
     "baseUrl": ".",
     "paths": {
-      "#preload": [
-        "../preload/src/index"
-      ],
       "/@/*": [
         "./src/*"
       ]
     },
-    "lib": ["ESNext", "dom", "dom.iterable"],
-    "jsx": "preserve",
-    "allowSyntheticDefaultImports": true
   },
-
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
-    "types/**/*.d.ts",
-    "../../types/**/*.d.ts",
+    "../../types/**/*.d.ts"
   ],
   "exclude": [
     "**/*.spec.ts",
-    "**/*.test.ts",
+    "**/*.test.ts"
   ]
 }

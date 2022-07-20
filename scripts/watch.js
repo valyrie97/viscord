@@ -3,7 +3,7 @@
 const {createServer, build, createLogger} = require('vite');
 const electronPath = require('electron');
 const {spawn} = require('child_process');
-
+const node = 'node' + (process.platform === 'win32' ? '.exe' : '');
 
 /** @type 'production' | 'development'' */
 const mode = process.env.MODE = process.env.MODE || 'development';
@@ -23,6 +23,58 @@ const stderrFilterPatterns = [
   /ExtensionLoadWarning/,
 ];
 
+const setupServerPackageWatcher = () => {
+  const logger = createLogger(logLevel, {
+    prefix: '[srvr]',
+  });
+
+  let spawnProcess = null;
+
+  const processDied = () => {
+    logger.error('Server has died.', {timestamp: true});
+    spawnProcess = null;
+  };
+
+  return build({
+    mode,
+    logLevel,
+    build: {
+      watch: {},
+    },
+    configFile: 'packages/server/vite.config.js',
+    plugins: [{
+      name: 'reload-server-on-server-package-change',
+      writeBundle() {
+        /** Kill electron ff process already exist */
+        if (spawnProcess !== null) {
+          spawnProcess.off('exit', processDied);
+          spawnProcess.kill('SIGINT');
+          spawnProcess = null;
+        }
+
+        /** Spawn new electron process */
+        spawnProcess = spawn(node, ['./index.cjs'], {
+          cwd: './packages/server/dist',
+        });
+
+        /** Proxy all logs */
+        spawnProcess.stdout.on('data', d => d.toString().trim() && logger.warn(d.toString(), {timestamp: true}));
+
+        /** Proxy error logs but stripe some noisy messages. See {@link stderrFilterPatterns} */
+        spawnProcess.stderr.on('data', d => {
+          const data = d.toString().trim();
+          if (!data) return;
+          const mayIgnore = stderrFilterPatterns.some((r) => r.test(data));
+          if (mayIgnore) return;
+          logger.error(data, {timestamp: true});
+        });
+
+        /** Stops the watch script when the application has been quit */
+        spawnProcess.on('exit', processDied);
+      },
+    }],
+  });
+};
 
 /**
  * Setup watcher for `main` package
@@ -30,6 +82,7 @@ const stderrFilterPatterns = [
  * @param {import('vite').ViteDevServer} watchServer Renderer watch server instance.
  * Needs to set up `VITE_DEV_SERVER_URL` environment variable from {@link import('vite').ViteDevServer.resolvedUrls}
  */
+
 const setupMainPackageWatcher = ({resolvedUrls}) => {
   process.env.VITE_DEV_SERVER_URL = resolvedUrls.local[0];
 
@@ -142,6 +195,7 @@ const setupPreloadPackageWatcher = ({ws}) =>
      * See {@link setupMainPackageWatcher} JSDoc
      */
     await setupMainPackageWatcher(rendererWatchServer);
+    await setupServerPackageWatcher();
   } catch (e) {
     console.error(e);
     process.exit(1);

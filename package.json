@@ -13,22 +13,25 @@
   },
   "main": "packages/main/dist/index.cjs",
   "scripts": {
-    "build": "npm run build:main && npm run build:preload && npm run build:renderer",
+    "build": "npm run build:main && npm run build:preload && npm run build:renderer && npm run build:server",
     "build:main": "cd ./packages/main && vite build",
     "build:preload": "cd ./packages/preload && vite build",
     "build:renderer": "cd ./packages/renderer && vite build",
+    "build:server": "cd ./packages/server && vite build",
     "compile": "cross-env MODE=production npm run build && electron-builder build --config .electron-builder.config.js --dir --config.asar=false",
-    "test": "npm run test:main && npm run test:preload && npm run test:renderer && npm run test:e2e",
+    "test": "npm run test:main && npm run test:preload && npm run test:renderer && npm run test:e2e && npm run test:server",
     "test:e2e": "vitest run",
     "test:main": "vitest run -r packages/main --passWithNoTests",
     "test:preload": "vitest run -r packages/preload --passWithNoTests",
     "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
+    "test:server": "vitest run -r packages/server --passWithNoTests",
     "watch": "node scripts/watch.js",
     "lint": "eslint . --ext js,ts,vue",
     "typecheck:main": "tsc --noEmit -p packages/main/tsconfig.json",
     "typecheck:preload": "tsc --noEmit -p packages/preload/tsconfig.json",
     "typecheck:renderer": "vue-tsc --noEmit -p packages/renderer/tsconfig.json",
-    "typecheck": "npm run typecheck:main && npm run typecheck:preload && npm run typecheck:renderer",
+    "typecheck:server": "tsc --noEmit -p packages/server/tsconfig.json",
+    "typecheck": "npm run typecheck:main && npm run typecheck:preload && npm run typecheck:renderer && npm run typecheck:server",
     "postinstall": "cross-env ELECTRON_RUN_AS_NODE=1 npx --no-install electron ./scripts/update-electron-vendors.js "
   },
   "devDependencies": {
@@ -52,7 +55,21 @@
     "vue-tsc": "0.38.8"
   },
   "dependencies": {
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "@types/react-timeago": "^4.1.3",
+    "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.3",
+    "@vitejs/plugin-react": "^2.0.0",
     "electron-updater": "5.0.5",
-    "vue": "3.2.37"
+    "eslint-plugin-react": "^7.30.1",
+    "express": "^4.18.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-time-ago": "^7.2.1",
+    "react-timeago": "^7.1.0",
+    "uuid": "^8.3.2",
+    "vue": "3.2.37",
+    "ws": "^8.8.1"
   }
 }
