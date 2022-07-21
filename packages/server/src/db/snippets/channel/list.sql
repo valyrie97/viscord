@@ -1,0 +1,1 @@
+SELECT (name, uid) FROM channels;

@@ -1,19 +1,26 @@
 export default function router(routes: any) {
+
   for(const routeName in routes) {
     const route = routes[routeName];
-    if(typeof route === 'object') {
-      for(const suffix in route) {
+    if('routes' in route) {
+      for(const suffix of route.routes) {
         const combinedRouteName = routeName + ':' + suffix;
-        routes[combinedRouteName] = route[suffix];
+        routes[combinedRouteName] = (_: never, ...args: any[]) => route(suffix, args);
       }
       delete routes[routeName];
     }
   }
-  return function(route: any, data: any) {
+
+  const sendFn = function(route: any, data: any) {
+    console.log(routes);
     if(route in routes) {
       return routes[route](data);
     } else {
       console.warn(`route <${route}> not found`);
+      console.trace();
     }
   };
+  
+  sendFn.routes = Object.keys(routes);
+  return sendFn;
 }

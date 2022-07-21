@@ -17,7 +17,9 @@ wss.on('connection', (ws) => {
       }
       const {action, data} = message;
       try {
+        console.log(action, data);
         const _return = await (router(action, data) as unknown as Promise<any>);
+        console.log(_return);
         if(_return) {
           ws.send(JSON.stringify(_return));
         }

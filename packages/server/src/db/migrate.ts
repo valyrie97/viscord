@@ -96,7 +96,7 @@ export async function update() {
     console.log('database up to date!');
   } else {
     const difference = expectedVersion - currentVersion;
-    process.stdout.write(`database ${difference} version${difference !== 1 ? 's' : ''} behind`);
+    console.log(`database ${difference} version${difference !== 1 ? 's' : ''} behind`);
     // console.log(`${currentVersion} >>> ${expectedVersion}`);
     const neededMigrations = migrations.filter(m => m.version > currentVersion);
     let completedMigrations = 0;

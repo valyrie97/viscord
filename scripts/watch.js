@@ -66,7 +66,7 @@ const setupServerPackageWatcher = () => {
           if (!data) return;
           const mayIgnore = stderrFilterPatterns.some((r) => r.test(data));
           if (mayIgnore) return;
-          logger.error(data, {timestamp: true});
+          data.split('\n').forEach(d => logger.error(d, {timestamp: true}));
         });
 
         /** Stops the watch script when the application has been quit */
