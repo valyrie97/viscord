@@ -1,5 +1,5 @@
 {
-  "name": "viscord",
+  "name": "corner",
   "description": "Secure boilerplate for Electron app based on Vite",
   "private": true,
   "engines": {

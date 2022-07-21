@@ -1,4 +1,4 @@
-INSERT INTO viscord.messages
+INSERT INTO messages
   (`text`, `from`, `uid`, `t_sent`)
   VALUES (
     ?,

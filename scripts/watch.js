@@ -58,7 +58,7 @@ const setupServerPackageWatcher = () => {
         });
 
         /** Proxy all logs */
-        spawnProcess.stdout.on('data', d => d.toString().trim() && logger.info(d.toString().trim(), {timestamp: true}));
+        spawnProcess.stdout.on('data', d => d.toString().trim() && d.toString().trim().split('\n').forEach(str => logger.info(str, {timestamp: true})));
 
         /** Proxy error logs but stripe some noisy messages. See {@link stderrFilterPatterns} */
         spawnProcess.stderr.on('data', d => {

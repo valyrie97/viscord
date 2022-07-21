@@ -1,3 +1,3 @@
-SELECT * FROM viscord.messages
+SELECT * FROM messages
   ORDER BY t_sent
   LIMIT 100;

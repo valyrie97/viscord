@@ -41,6 +41,7 @@ const mockMessages: Message[] = [
 
 export default () => {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [hist, setHist] = useState(false);
 
   const textBoxRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +51,7 @@ export default () => {
         setMessages([...messages, data]);
       },
       recent(data: { messages: Message[] }) {
-        setMessages(data.messages);
+        setMessages([...data.messages, ...messages]);
       },
     });
     registerRouter(actions);
@@ -60,11 +61,12 @@ export default () => {
   }, [messages]);
 
   useEffect(() => {
-    if(messages.length === 0) {
+    if(!hist) {
       console.log('sending recents request');
       send('recent');
+      setHist(true);
     }
-  }, [messages]);
+  }, [hist]);
 
   const sendMessage = useCallback(() => {
     if(textBoxRef.current === null) return;
