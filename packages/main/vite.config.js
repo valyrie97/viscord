@@ -36,6 +36,9 @@ const config = {
     emptyOutDir: true,
     brotliSize: false,
   },
+  vite: {
+    clearScreen: false,
+  },
 };
 
 export default config;

@@ -28,6 +28,7 @@ const stderrFilterPatterns = [
 const setupServerPackageWatcher = () => {
   const logger = createLogger(logLevel, {
     prefix: '[srvr]',
+    allowClearScreen: false,
   });
 
   let spawnProcess = null;
@@ -88,6 +89,7 @@ const setupMainPackageWatcher = ({resolvedUrls}) => {
 
   const logger = createLogger(logLevel, {
     prefix: '[main]',
+    allowClearScreen: false,
   });
 
   /** @type {ChildProcessWithoutNullStreams | null} */

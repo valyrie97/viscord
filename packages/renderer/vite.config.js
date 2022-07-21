@@ -45,6 +45,9 @@ const config = {
       preloadEntry: join(PACKAGE_ROOT, '../preload/src/index.ts'),
     }),
   ],
+  vite: {
+    clearScreen: false,
+  },
 };
 
 export default config;

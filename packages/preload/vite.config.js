@@ -33,6 +33,9 @@ const config = {
   plugins: [
     preload.vite(),
   ],
+  vite: {
+    clearScreen: false,
+  },
 };
 
 export default config;
