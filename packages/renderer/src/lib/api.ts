@@ -48,8 +48,19 @@ const connect = async () => {
 
 connect();
 
-export function send(action: string, data?: any) {
+export async function send(action: string, data?: any) {
   if(socket === null) return;
+  if(socket && socket.readyState === socket.CONNECTING) {
+    try {
+      await new Promise((resolve, reject) => {
+        socket?.addEventListener('open', resolve);
+        socket?.addEventListener('close', reject);
+      });
+    } catch(e) {
+      return;
+    }
+    if(socket.readyState !== socket.OPEN) return;
+  }
   const message = JSON.stringify({ action, data });
   socket.send(message);
 }

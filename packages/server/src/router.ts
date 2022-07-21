@@ -11,7 +11,7 @@ export default function router(routes: any) {
   }
   return function(route: any, data: any) {
     if(route in routes) {
-      routes[route](data);
+      return routes[route](data);
     } else {
       console.warn(`route <${route}> not found`);
     }

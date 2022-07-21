@@ -49,6 +49,9 @@ export default () => {
       message(data: Message) {
         setMessages([...messages, data]);
       },
+      recent(data: { messages: Message[] }) {
+        setMessages(data.messages);
+      },
     });
     registerRouter(actions);
     return () => {
@@ -56,9 +59,16 @@ export default () => {
     };
   }, [messages]);
 
+  useEffect(() => {
+    if(messages.length === 0) {
+      console.log('sending recents request');
+      send('recent');
+    }
+  }, [messages]);
+
   const sendMessage = useCallback(() => {
     if(textBoxRef.current === null) return;
-    send('message', createMessage('Version 3', textBoxRef.current.innerText));
+    send('message', createMessage('Val', textBoxRef.current.innerText));
     textBoxRef.current.innerText = '';
   }, []);
 
@@ -93,7 +103,7 @@ export default () => {
             width: '100%',
           }}>
             {messages.map(message => (
-              <div style={{
+              <div key={message.uid} style={{
                 display: 'grid',
                 gridTemplateColumns: '128px 1fr',
                 width: '100%',

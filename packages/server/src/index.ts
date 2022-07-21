@@ -8,7 +8,7 @@ const wss = new WebSocketServer({
 });
 
 wss.on('connection', (ws) => {
-  ws.on('message', (str) => {
+  ws.on('message', async (str) => {
     try {
       const message = JSON.parse(str.toString());
       if(typeof message.action !== 'string') {
@@ -17,7 +17,10 @@ wss.on('connection', (ws) => {
       }
       const {action, data} = message;
       try {
-        router(action, data);
+        const _return = await (router(action, data) as unknown as Promise<any>);
+        if(_return) {
+          ws.send(JSON.stringify(_return));
+        }
       } catch(e) {
         console.warn(`error in action ${action}`);
         console.error(e);
@@ -40,3 +43,13 @@ export function broadcast(action: string, data?: any) {
 }
 
 export default wss;
+
+// -------------
+
+import { update } from './db/migrate';
+
+try {
+  update();
+} catch (e) {
+  console.error(e);
+}

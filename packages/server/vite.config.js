@@ -3,7 +3,6 @@ import {join} from 'path';
 
 const PACKAGE_ROOT = __dirname;
 
-
 /**
  * @type {import('vite').UserConfig}
  * @see https://vitejs.dev/config/
@@ -17,6 +16,9 @@ const config = {
       '/@/': join(PACKAGE_ROOT, 'src') + '/',
     },
   },
+  assetsInclude: [
+    '**/*.sql',
+  ],
   build: {
     ssr: true,
     sourcemap: 'inline',
