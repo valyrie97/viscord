@@ -6,9 +6,13 @@ services:
     restart: always
     environment:
       MARIADB_ROOT_PASSWORD: example
-      MARIADB_ROOT_HOST: '127.0.0.1'
+      MARIADB_DATABASE: corner
+      MARIADB_USER: corner
+      MARIADB_PASSWORD: corner
     ports:
       - 3306:3306
+    # volumes:
+    #   - ./docker-volume:/var/lib/mysql
 
   adminer:
     image: adminer

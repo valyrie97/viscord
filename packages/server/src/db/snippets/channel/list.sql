@@ -1,1 +1,1 @@
-SELECT (name, uid) FROM channels;
+SELECT name, uid FROM channels;

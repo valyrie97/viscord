@@ -60,7 +60,6 @@ export default () => {
     <>
       <div
         style={{
-          background: '#282a36',
           height: '100%',
           width: '100%',
           display: 'grid',

@@ -27,21 +27,18 @@ const connect = async () => {
     if(socket === null) return;
     connectionAttempts = 0;
     // socket.send('Hello Server!');
-    console.log('API Connected');
   });
 
   socket.addEventListener('message', (event) => {
-    console.log('API Broadcasted', event.data);
     const {action, data} = JSON.parse(event.data);
+    console.log('[IN]', action, data);
     for(const router of routers) {
-      // debugger;
       router(action, data);
     }
   });
 
   socket.addEventListener('close', () => {
     socket = null;
-    console.log('API Closed');
     connect();
   });
 };

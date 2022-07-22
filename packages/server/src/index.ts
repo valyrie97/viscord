@@ -1,54 +1,23 @@
-import { WebSocketServer } from 'ws';
-import router from './routers/root';
+import router from './lib/router';
+import message from './routers/message';
+import { expose } from './lib/WebSocketServer';
 
-const wss = new WebSocketServer({
-  port: 3000,
-}, () => {
-  console.log('ws chat server started on dev.valnet.xyz');
+const api = router({
+  up() {
+    console.log(Date.now());
+  },
+  message: message,
+  messages: message,
+  channel: channel,
+  channels: channel,
 });
 
-wss.on('connection', (ws) => {
-  ws.on('message', async (str) => {
-    try {
-      const message = JSON.parse(str.toString());
-      if(typeof message.action !== 'string') {
-        console.warn('invalid JSON message');
-        return;
-      }
-      const {action, data} = message;
-      try {
-        console.log(action, data);
-        const _return = await (router(action, data) as unknown as Promise<any>);
-        console.log(_return);
-        if(_return) {
-          ws.send(JSON.stringify(_return));
-        }
-      } catch(e) {
-        console.warn(`error in action ${action}`);
-        console.error(e);
-      }
-    } catch (e) {
-      console.warn('JSON parse failed on message');
-      console.error(e);
-    }
-  });
-});
-
-export function send(client: any, action: string, data?: any) {
-  client.send(JSON.stringify({action, data}));
-}
-
-export function broadcast(action: string, data?: any) {
-  for(const client of wss.clients) {
-    send(client, action, data);
-  }
-}
-
-export default wss;
+expose(api, 3000);
 
 // -------------
 
 import { update } from './db/migrate';
+import channel from './routers/channel';
 
 try {
   update();

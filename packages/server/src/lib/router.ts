@@ -1,5 +1,6 @@
-export default function router(routes: any) {
 
+
+export default function router(routes: any) {
   for(const routeName in routes) {
     const route = routes[routeName];
     if('routes' in route) {
@@ -12,7 +13,6 @@ export default function router(routes: any) {
   }
 
   const sendFn = function(route: any, data: any) {
-    console.log(routes);
     if(route in routes) {
       return routes[route](data);
     } else {

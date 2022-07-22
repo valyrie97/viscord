@@ -65,17 +65,17 @@ export async function update() {
   // determine version
   const currentVersion: number = await new Promise((resolve, rej) => {
     migrationConnection.query(`
-      SELECT SCHEMA_NAME
-        FROM INFORMATION_SCHEMA.SCHEMATA
-        WHERE SCHEMA_NAME = '${database}';
+      SELECT COUNT(*) as tables
+        FROM information_schema.tables
+        WHERE table_schema = '${database}';
     `, async (err, res, fields) => {
-      if(res.length === 0) {
-        await new Promise((resolve, reject) => {
-          migrationConnection.query(`CREATE DATABASE \`${database}\` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;`, (err, res) => {
-            if(err) return reject(err);
-            return resolve(res);
-          });
-        });
+      if(res[0].tables === 0) {
+        // await new Promise((resolve, reject) => {
+        //   migrationConnection.query(`CREATE DATABASE \`${database}\` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;`, (err, res) => {
+        //     if(err) return reject(err);
+        //     return resolve(res);
+        //   });
+        // });
         resolve(0);
       } else {
         const version: number = await new Promise((resolve, reject) => {
