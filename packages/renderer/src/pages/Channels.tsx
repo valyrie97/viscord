@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { registerRouter, router, send, unregisterRouter } from '../lib/api';
+import { channelContext } from './App';
 
 function useRouter(actions: Function | object, deps: any[]) {
   const _router = typeof actions === 'object' ? router(actions) : actions;
@@ -31,6 +32,7 @@ function Hashmark() {
 export default function Channels() {
 
   const [channels, setChannels] = useState<IChannel[]>([]);
+  const {channel, setChannel} = useContext(channelContext);
 
   const { send } = useRouter({
     'channels:list'(data: IChannel[]) {
@@ -48,6 +50,12 @@ export default function Channels() {
     }
   }, [channels]);
 
+  useEffect(() => {
+    if(channels.length === 0) return;
+    if(channel !== null) return;
+    setChannel(channels[0].uid);
+  }, [channel, channels]);
+
   const textbox = useRef<HTMLInputElement>(null);
   const add = useCallback(() => {
     if(textbox.current === null) return;
@@ -59,11 +67,15 @@ export default function Channels() {
   return (
     <>
       <br></br>
-      {channels.map(channel => (
-        <div key={channel.uid} style={{
+      {channels.map(c => (
+        <div key={c.uid} style={{
           margin: '8px 0px',
+          color: channel === c.uid ? 'cyan' : 'inherit',
+          cursor: 'pointer',
+        }} onClick={() => {
+          setChannel(c.uid);
         }}>
-          <Hashmark></Hashmark>{channel.name}
+          <Hashmark></Hashmark>{c.name} {c.uid.substring(0, 4)}
           <a style={{ color: 'rgba(0, 100, 200, 1)', marginLeft: '8px', fontSize: '10px' }} href="#" onClick={() => {}}>Delete</a>
         </div>
       ))}

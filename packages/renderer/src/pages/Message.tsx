@@ -5,6 +5,7 @@ export interface IMessage {
   timestamp: number;
   from: string;
   text: string;
+  channel: string;
 }
 
 interface MessageProps {

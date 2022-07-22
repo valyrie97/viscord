@@ -12,7 +12,7 @@ export const channelContext = createContext<{
 });
 
 export default function App() {
-  const [channel, setChannel] = useState<string>(null);
+  const [channel, setChannel] = useState<string | null>(null);
 
   const channelContextValue = { channel, setChannel };
 

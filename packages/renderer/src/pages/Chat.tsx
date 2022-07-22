@@ -1,16 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import TimeAgo from 'react-timeago';
 import { v4 } from 'uuid';
 import { registerRouter, router, send, unregisterRouter } from '../lib/api';
+import { channelContext } from './App';
 import type { IMessage} from './Message';
 import { Message } from './Message';
 
-function createMessage(from: string, text: string, t = 0): IMessage {
+function createMessage(from: string, text: string, channel: string, t = 0): IMessage {
   return {
     text,
     from,
     timestamp: Date.now() - t * 1000,
     uid: v4(),
+    channel,
   };
 }
 
@@ -19,14 +21,15 @@ export default () => {
   const [hist, setHist] = useState(false);
 
   const textBoxRef = useRef<HTMLDivElement>(null);
+  const { channel, setChannel } = useContext(channelContext);
 
   useEffect(() => {
     const actions = router({
-      message(data: IMessage) {
+      'message:message'(data: IMessage) {
         setMessages([...messages, data]);
       },
       'message:recent'(data: { messages: IMessage[] }) {
-        setMessages([...data.messages, ...messages]);
+        setMessages(data.messages);
       },
     });
     registerRouter(actions);
@@ -36,18 +39,16 @@ export default () => {
   }, [messages]);
 
   useEffect(() => {
-    if(!hist) {
-      console.log('sending recents request');
-      send('message:recent');
-      setHist(true);
-    }
-  }, [hist]);
+    console.log('sending recents request');
+    send('message:recent', { channel });
+  }, [channel]);
 
   const sendMessage = useCallback(() => {
     if(textBoxRef.current === null) return;
-    send('message:message', createMessage('Val', textBoxRef.current.innerText));
+    if(channel === null) return;
+    send('message:message', createMessage('Val', textBoxRef.current.innerText, channel));
     textBoxRef.current.innerText = '';
-  }, []);
+  }, [channel]);
 
   const keyDown = useCallback((evt: any) => {
     console.log(evt);
