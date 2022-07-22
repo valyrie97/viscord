@@ -6,7 +6,11 @@ export default function router(routes: any) {
     if('routes' in route) {
       for(const suffix of route.routes) {
         const combinedRouteName = routeName + ':' + suffix;
-        routes[combinedRouteName] = (_: never, ...args: any[]) => route(suffix, args);
+        routes[combinedRouteName] = function(data: any) {
+          // console.log(suffix, route, data)
+          return route(suffix, data);
+          // console.log('INCOMMING', args)
+        };
       }
       delete routes[routeName];
     }

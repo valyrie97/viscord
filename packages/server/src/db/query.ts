@@ -11,6 +11,7 @@ export default async function(a: any, ...opts: any[]): Promise<any[] | null> {
       connection.query(text, [...opts], (err, results) => {
         if(!err) return resolve(results);
         console.error(err.errno, err.sqlMessage);
+        console.error('--- Query ---');
         console.error(err.sql);
         reject(err);
       });
