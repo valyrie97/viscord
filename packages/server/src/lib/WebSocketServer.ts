@@ -19,7 +19,7 @@ export function expose(router: Function, port: number) {
         try {
           console.log('[IN]', action, data);
           const _return = await (router(action, data) as unknown as Promise<any>);
-          console.log(_return);
+          // console.log(_return);
           if(_return) {
             try {
               switch(_return.type) {

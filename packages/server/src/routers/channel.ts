@@ -13,10 +13,10 @@ export default router({
   async add(channel: any) {
     const name = channel.name;
     const uid = v4();
-    console.log(channel);
+    // console.log(channel);
     const res = await query(add, name, uid);
     if(res === null) return;
-    console.log(res);
+    // console.log(res);
     return broadcast({
       uid,
       name,
