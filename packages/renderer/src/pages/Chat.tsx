@@ -80,7 +80,7 @@ export default () => {
             width: '100%',
           }}>
             {messages.map(message => (
-              <Message message={message}></Message>
+              <Message key={message.uid} message={message}></Message>
             ))}
           </div>
         </div>

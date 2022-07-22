@@ -75,7 +75,7 @@ export default function Channels() {
         }} onClick={() => {
           setChannel(c.uid);
         }}>
-          <Hashmark></Hashmark>{c.name} {c.uid.substring(0, 4)}
+          <Hashmark></Hashmark>{c.name}
           <a style={{ color: 'rgba(0, 100, 200, 1)', marginLeft: '8px', fontSize: '10px' }} href="#" onClick={() => {}}>Delete</a>
         </div>
       ))}

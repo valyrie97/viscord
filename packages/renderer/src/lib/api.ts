@@ -3,7 +3,7 @@
 
 let socket: WebSocket | null = null;
 let connectionAttempts = 0;
-const url = 'wss://macos.valnet.xyz';
+const url = 'wss://dev.valnet.xyz';
 
 let routers: any[] = [];
 
