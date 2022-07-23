@@ -1,10 +1,3 @@
 INSERT INTO messages
-  (`text`, `from`, `uid`, `t_sent`, channel_uid)
-  VALUES (
-    ?,
-    ?,
-    ?,
-    /* UNIX_TIMESTAMP(), */
-    ?,
-    ?
-  )
+  (`text`, sender_uid, `uid`, `t_sent`, channel_uid)
+  VALUES ( ?, ?, ?, ?, ? );

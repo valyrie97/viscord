@@ -2,5 +2,5 @@
  * @module preload
  */
 
-export {sha256sum} from './nodeCrypto';
+ export { getClientId, setClientId } from './clientId';
 export {versions} from './versions';

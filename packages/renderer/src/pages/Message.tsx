@@ -22,8 +22,7 @@ export function Message({
   
 
   return (
-    <>
-      <div key={message.uid} style={{
+      <div style={{
         display: 'grid',
         gridTemplateColumns: '128px 1fr',
         width: '100%',
@@ -63,6 +62,5 @@ export function Message({
           </div>
         </span>
       </div>
-    </>
   );
 }

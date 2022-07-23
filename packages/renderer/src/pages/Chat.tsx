@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { v4 } from 'uuid';
-import { useAPI } from '../lib/useRouter';
-import { channelContext } from './App';
+import { useApi } from '../lib/useApi';
+import { channelContext, clientIdContext } from './App';
 import type { IMessage} from './Message';
 import { Message } from './Message';
 
@@ -19,18 +19,20 @@ function createMessage(from: string, text: string,
 export default () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [hist, setHist] = useState(false);
-
+  
   const textBoxRef = useRef<HTMLDivElement>(null);
+  
   const { channel, setChannel } = useContext(channelContext);
+  const clientId = useContext(clientIdContext);
 
-  const { send } = useAPI({
+  const { send } = useApi({
     'message:message'(data: IMessage) {
       if(data.channel !== channel) return;
-      
+
       setMessages([...messages, data]);
     },
     'message:recent'(data: { messages: IMessage[] }) {
-      setMessages(data.messages);
+      setMessages(data.messages.reverse());
     },
   }, [messages]);
 
@@ -42,10 +44,11 @@ export default () => {
   const sendMessage = useCallback(() => {
     if(textBoxRef.current === null) return;
     if(channel === null) return;
+    if(clientId === null) return;
     send(
       'message:message',
       createMessage(
-        'Val',
+        clientId,
         textBoxRef.current.innerText,
         channel,
       ),
@@ -81,9 +84,9 @@ export default () => {
             bottom: '0px',
             width: '100%',
           }}>
-            {messages.map(message => (
-              <Message key={message.uid} message={message}></Message>
-            ))}
+          {messages.map(message => (
+            <Message key={message.uid} message={message}></Message>
+          ))}
           </div>
         </div>
         <div onClick={() => {

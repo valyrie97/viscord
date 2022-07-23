@@ -1,4 +1,5 @@
 import { WebSocketServer } from 'ws';
+import { inspect } from 'util';
 
 export function expose(router: Function, port: number) {
   const wss = new WebSocketServer({
@@ -31,7 +32,10 @@ export function expose(router: Function, port: number) {
                   break;
                 }
                 case ResponseType.REPLY: {
-                  console.log('[OUT]', action, _return.data);
+                  console.log('[OUT]', action, inspect(_return.data, {
+                    depth: 0,
+                    colors: true,
+                  }));
                   send(ws, action, _return.data);
                   break;
                 }

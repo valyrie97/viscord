@@ -1,6 +1,9 @@
 import router from './lib/router';
-import message from './routers/message';
 import { expose } from './lib/WebSocketServer';
+
+import message from './routers/message';
+import channel from './routers/channel';
+import client from './routers/client';
 
 const api = router({
   up() {
@@ -10,6 +13,8 @@ const api = router({
   messages: message,
   channel: channel,
   channels: channel,
+  client: client,
+  clients: client,
 });
 
 expose(api, 3000);
@@ -17,7 +22,6 @@ expose(api, 3000);
 // -------------
 
 import { update } from './db/migrate';
-import channel from './routers/channel';
 
 try {
   update();

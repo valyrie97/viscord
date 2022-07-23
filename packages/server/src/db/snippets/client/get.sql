@@ -1,0 +1,1 @@
+SELECT name FROM clients WHERE uid=?

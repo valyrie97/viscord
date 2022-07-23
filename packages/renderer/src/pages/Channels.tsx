@@ -1,7 +1,8 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { channelContext } from './App';
-import { useAPI } from '../lib/useRouter';
+import { channelContext, clientIdContext } from './App';
+import { useApi } from '../lib/useApi';
 import type { IMessage } from './Message';
+import NameTextbox from './NameTextbox';
 
 interface IChannel {
   uid: string;
@@ -23,14 +24,13 @@ interface IUnreads {
 export default function Channels() {
 
   const [channels, setChannels] = useState<IChannel[]>([]);
-  const {channel, setChannel} = useContext(channelContext);
-
   const [unreads, setUnreads] = useState<IUnreads>({});
+  
+  const {channel, setChannel} = useContext(channelContext);
+  const clientId = useContext(clientIdContext);
 
-
-  const { send } = useAPI({
+  const { send } = useApi({
     'channels:list'(data: IChannel[]) {
-      // console.log(data)
       setChannels(data);
     },
     'channel:add'(channel: IChannel) {
@@ -68,6 +68,11 @@ export default function Channels() {
       [channel]: 0,
     });
   }, [channel]);
+
+  useEffect(() => {
+    if(clientId === null) return;
+    send('client:get', clientId);
+  }, [clientId]);
 
   const textbox = useRef<HTMLInputElement>(null);
   const add = useCallback(() => {
@@ -127,6 +132,7 @@ export default function Channels() {
         borderRadius: '8px',
         // lineHeight: '20px'
       }}>ADD</button>
+      <NameTextbox></NameTextbox>
     </>
   );
 }

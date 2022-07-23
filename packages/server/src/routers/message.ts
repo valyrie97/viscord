@@ -2,11 +2,12 @@ import query from '../db/query';
 import router from '../lib/router';
 import newMessage from '../db/snippets/message/new.sql';
 import recentMessages from '../db/snippets/message/recent.sql';
+import getName from '../db/snippets/client/get.sql';
 import { broadcast, reply } from '../lib/WebSocketServer';
 
 export default router({
   async message(data: any) {
-    const failed = null === await query(
+    const response = await query(
       newMessage,
       data.text,
       data.from,
@@ -14,11 +15,14 @@ export default router({
       data.timestamp,
       data.channel,
     );
-    if(failed) return;
+    if(response === null) return;
+    // translate from to a real name
+    const nameRes = await query(getName, data.from);
+    if(nameRes === null) return;
+    data.from = nameRes[0].name;
     return broadcast(data);
   },
   async recent(data: any) {
-    console.log('got recents request ch', data.channel);
     const messages = await query(recentMessages, data.channel);
     if(messages === null) return;
     return reply({
