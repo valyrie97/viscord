@@ -25,7 +25,7 @@ export default router({
       messages: messages.map(v => ({
         from: v.from,
         uid: v.uid,
-        timestamp: v.t_sent * 1000,
+        timestamp: v.t_sent,
         text: v.text,
       })),
     });

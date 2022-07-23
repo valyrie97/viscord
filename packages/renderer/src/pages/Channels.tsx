@@ -1,20 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { registerRouter, router, send, unregisterRouter } from '../lib/api';
 import { channelContext } from './App';
-
-function useRouter(actions: Function | object, deps: any[]) {
-  const _router = typeof actions === 'object' ? router(actions) : actions;
-  useEffect(() => {
-    registerRouter(_router);
-    return () => {
-      unregisterRouter(_router);
-    };
-  }, deps);
-
-  return {
-    send: send,
-  };
-}
+import { useAPI } from '../lib/useRouter';
+import type { IMessage } from './Message';
 
 interface IChannel {
   uid: string;
@@ -29,12 +16,19 @@ function Hashmark() {
   }}>#</span>;
 }
 
+interface IUnreads {
+  [uid: string]: number
+}
+
 export default function Channels() {
 
   const [channels, setChannels] = useState<IChannel[]>([]);
   const {channel, setChannel} = useContext(channelContext);
 
-  const { send } = useRouter({
+  const [unreads, setUnreads] = useState<IUnreads>({});
+
+
+  const { send } = useAPI({
     'channels:list'(data: IChannel[]) {
       // console.log(data)
       setChannels(data);
@@ -42,7 +36,18 @@ export default function Channels() {
     'channel:add'(channel: IChannel) {
       setChannels([...channels, channel]);
     },
-  }, [channels]);
+    'message:message'(message: IMessage) {
+      if(channel === message.channel) return;
+      setUnreads({
+        ...unreads,
+        [message.channel]: (unreads[message.channel] ?? 0) + 1,
+      });
+    },
+  }, [channels, unreads]);
+
+  useEffect(() => {
+    console.log('unreads', unreads);
+  }, [unreads]);
 
   useEffect(() => {
     if(channels.length === 0) {
@@ -55,6 +60,14 @@ export default function Channels() {
     if(channel !== null) return;
     setChannel(channels[0].uid);
   }, [channel, channels]);
+
+  useEffect(() => {
+    if(!channel) return;
+    setUnreads({
+      ...unreads,
+      [channel]: 0,
+    });
+  }, [channel]);
 
   const textbox = useRef<HTMLInputElement>(null);
   const add = useCallback(() => {
@@ -75,8 +88,20 @@ export default function Channels() {
         }} onClick={() => {
           setChannel(c.uid);
         }}>
-          <Hashmark></Hashmark>{c.name}
-          <a style={{ color: 'rgba(0, 100, 200, 1)', marginLeft: '8px', fontSize: '10px' }} href="#" onClick={() => {}}>Delete</a>
+          <Hashmark></Hashmark>
+          {(c.uid in unreads) && (unreads[c.uid] > 0) && (
+            <span style={{ paddingRight: '8px' }}>({unreads[c.uid]})</span>
+          )}
+          <span style={{
+            fontWeight: (unreads[c.uid] ?? 0) > 0 ? 'bold' : '300',
+          }}>
+            {c.name}
+          </span>
+          <a style={{
+            color: 'rgba(0, 100, 200, 1)',
+            marginLeft: '8px',
+            fontSize: '10px',
+          }} href="#" onClick={() => {}}>Delete</a>
         </div>
       ))}
       <Hashmark></Hashmark><input

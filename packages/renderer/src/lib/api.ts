@@ -32,8 +32,13 @@ const connect = async () => {
   socket.addEventListener('message', (event) => {
     const {action, data} = JSON.parse(event.data);
     console.log('[IN]', action, data);
-    for(const router of routers) {
-      router(action, data);
+    const routeFound = routers
+      .map(router => router(action, data))
+      .reduce((a, b) => a + b, 0);
+    if(routeFound === 0) {
+      console.warn(`route <${action}> not found`);
+    } else {
+      console.log(`routed to ${routeFound} elements`);
     }
   });
 
@@ -63,21 +68,12 @@ export async function send(action: string, data?: any) {
 }
 
 export function router(routes: any) {
-  for(const routeName in routes) {
-    const route = routes[routeName];
-    if(typeof route === 'object') {
-      for(const suffix in route) {
-        const combinedRouteName = routeName + ':' + suffix;
-        routes[combinedRouteName] = route[suffix];
-      }
-      delete routes[routeName];
-    }
-  }
   return function(route: string, data: any) {
     if(route in routes) {
       routes[route](data);
+      return true;
     } else {
-      console.warn(`route <${route}> not found`);
+      return false;
     }
   };
 }
