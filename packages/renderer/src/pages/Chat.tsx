@@ -63,83 +63,81 @@ export default () => {
   }, [sendMessage]);
 
   return (
-    <>
-      <div
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'grid',
-          gridTemplateColumns: '1fr 64px',
-          gridTemplateRows: '1fr 64px',
-          gridTemplateAreas: '"content content" "message send"',
-        }}
-      >
+    <div
+      style={{
+        height: '100%',
+        width: '100%',
+        display: 'grid',
+        gridTemplateColumns: '1fr 64px',
+        gridTemplateRows: '1fr 64px',
+        gridTemplateAreas: '"content content" "message send"',
+      }}
+    >
+      <div style={{
+        // borderBottom: '1px solid #bd93f9',
+        gridArea: 'content',
+        position: 'relative',
+      }}>
         <div style={{
-          // borderBottom: '1px solid #bd93f9',
-          gridArea: 'content',
-          position: 'relative',
-        }}>
-          <div style={{
-            position: 'absolute',
-            bottom: '0px',
-            width: '100%',
-          }}>
-          {messages.map(message => (
-            <Message key={message.uid} message={message}></Message>
-          ))}
-          </div>
-        </div>
-        <div onClick={() => {
-          textBoxRef.current?.focus();
-        }}style={{
-          margin: '8px',
-          marginRight: '3px',
-          borderRadius: '8px',
-          background: '#343746',
-          gridArea: 'message',
-          display: 'grid',
-          placeItems: 'center center',
-          padding: '0px 16px',
-          cursor: 'text',
-          overflow: 'auto',
-        }}>
-          <div
-            ref={textBoxRef}
-            onKeyDown={keyDown}
-            className="input"
-            role="textbox"
-            contentEditable
-            style={{
-              background: 'inherit',
-              outline: 'none',
-              boxSizing: 'border-box',
-              borderRadius: '8px',
-              width: '100%',
-              resize: 'none',
-            }}
-          ></div>
-        </div>
-        <div style={{
+          position: 'absolute',
+          bottom: '0px',
           width: '100%',
-          height: '100%',
-          padding: '8px',
-          boxSizing: 'border-box',
         }}>
-          <div onClick={sendMessage} style={{
-            background: '#bd93f9',
-            width: '100%',
-            height: '100%',
-            // borderRadius: '50%',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            display: 'grid',
-            placeItems: 'center center',
-            fontSize: '32px',
-          }}>
-            
-          </div>
+        {messages.map(message => (
+          <Message key={message.uid} message={message}></Message>
+        ))}
         </div>
       </div>
-    </>
+      <div onClick={() => {
+        textBoxRef.current?.focus();
+      }}style={{
+        margin: '8px',
+        marginRight: '3px',
+        borderRadius: '8px',
+        background: '#343746',
+        gridArea: 'message',
+        display: 'grid',
+        placeItems: 'center center',
+        padding: '0px 16px',
+        cursor: 'text',
+        overflow: 'auto',
+      }}>
+        <div
+          ref={textBoxRef}
+          onKeyDown={keyDown}
+          className="input"
+          role="textbox"
+          contentEditable
+          style={{
+            background: 'inherit',
+            outline: 'none',
+            boxSizing: 'border-box',
+            borderRadius: '8px',
+            width: '100%',
+            resize: 'none',
+          }}
+        ></div>
+      </div>
+      <div style={{
+        width: '100%',
+        height: '100%',
+        padding: '8px',
+        boxSizing: 'border-box',
+      }}>
+        <div onClick={sendMessage} style={{
+          background: '#bd93f9',
+          width: '100%',
+          height: '100%',
+          // borderRadius: '50%',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center center',
+          fontSize: '32px',
+        }}>
+          
+        </div>
+      </div>
+    </div>
   );
 };

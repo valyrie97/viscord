@@ -83,7 +83,10 @@ export default function Channels() {
   }, []);
 
   return (
-    <>
+    <div style={{
+      height: '100%',
+      background: '#21222c',
+    }}>
       <br></br>
       {channels.map(c => (
         <div key={c.uid} style={{
@@ -133,6 +136,6 @@ export default function Channels() {
         // lineHeight: '20px'
       }}>ADD</button>
       <NameTextbox></NameTextbox>
-    </>
+    </div>
   );
 }

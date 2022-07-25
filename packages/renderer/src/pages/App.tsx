@@ -1,8 +1,9 @@
 import { createContext, useEffect, useState } from 'react';
 import Channels from './Channels';
 import Chat from './Chat';
-import { getClientId, setClientId } from '#preload';
+import { getClientId, setClientId } from '../lib/native';
 import { useApi } from '../lib/useApi';
+import Sidebar from '../components/Sidebar';
 
 export const channelContext = createContext<{
   channel: string | null,
@@ -39,7 +40,14 @@ export default function App() {
   return (
     <clientIdContext.Provider value={clientId}>
       <channelContext.Provider value={channelContextValue}>
-        <div style={{
+        <Sidebar
+          threshold={800}
+          sidebar={300}
+        >
+          <Channels></Channels>
+          <Chat></Chat>
+        </Sidebar>
+        {/* <div style={{
           display: 'grid',
           gridTemplateColumns: '200px 1fr',
           gridTemplateRows: '1fr',
@@ -49,12 +57,10 @@ export default function App() {
             background: '#21222c',
             borderRight: '1px solid #bd93f9',
           }}>
-            <Channels></Channels>
           </div>
           <div>
-            <Chat></Chat>
           </div>
-        </div>
+        </div> */}
       </channelContext.Provider>
     </clientIdContext.Provider>
   );

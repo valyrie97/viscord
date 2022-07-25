@@ -20,7 +20,8 @@
   ],
   "ignorePatterns": [
     "node_modules/**",
-    "**/dist/**"
+    "**/dist/**",
+    "cordova/**"
   ],
   "rules": {
     "@typescript-eslint/no-unused-vars": "error",

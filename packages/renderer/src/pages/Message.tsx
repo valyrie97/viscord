@@ -24,7 +24,7 @@ export function Message({
   return (
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '128px 1fr',
+        gridTemplateColumns: '4em 1fr',
         width: '100%',
         padding: '1px 0px',
       }}>
