@@ -1,0 +1,31 @@
+{
+  "name": "io.cordova.hellocordova",
+  "displayName": "HelloCordova",
+  "version": "1.0.0",
+  "description": "A sample Apache Cordova application that responds to the deviceready event.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cordova": "cordova"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "Apache Cordova Team",
+  "license": "Apache-2.0",
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {
+      "cordova-plugin-qrscanner": {}
+    }
+  },
+  "dependencies": {
+    "cordova": "^11.0.0",
+    "cordova-plugin-qrscanner-mm": "^4.0.3"
+  },
+  "devDependencies": {
+    "cordova-android": "^10.1.2"
+  }
+}

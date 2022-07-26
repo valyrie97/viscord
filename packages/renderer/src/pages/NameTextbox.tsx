@@ -5,12 +5,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { clientIdContext } from './App';
+import { ClientIdContext } from './App';
 import { useApi } from '../lib/useApi';
 
 
 export default function NameTextbox() {
-  const clientId = useContext(clientIdContext);
+  const { clientId } = useContext(ClientIdContext);
   const [name, setName] = useState<string | null>(null);
   const [inputElement, setInputElement] = useState<HTMLInputElement | null>(null);
 
