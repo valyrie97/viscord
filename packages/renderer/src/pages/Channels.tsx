@@ -1,8 +1,9 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { channelContext, clientIdContext } from './App';
+import { ChannelContext, ClientIdContext, HomeServerContext } from './App';
 import { useApi } from '../lib/useApi';
 import type { IMessage } from './Message';
 import NameTextbox from './NameTextbox';
+import LoginQR from './LoginQR';
 
 interface IChannel {
   uid: string;
@@ -26,8 +27,10 @@ export default function Channels() {
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [unreads, setUnreads] = useState<IUnreads>({});
   
-  const {channel, setChannel} = useContext(channelContext);
-  const clientId = useContext(clientIdContext);
+  const { channel, setChannel } = useContext(ChannelContext);
+  const { clientId } = useContext(ClientIdContext);
+
+  const { setHomeServer } = useContext(HomeServerContext);
 
   const { send } = useApi({
     'channels:list'(data: IChannel[]) {
@@ -56,8 +59,10 @@ export default function Channels() {
   }, [channels]);
 
   useEffect(() => {
+    console.log(channel, channels);
     if(channels.length === 0) return;
     if(channel !== null) return;
+    console.log('this is what setChannel is', setChannel);
     setChannel(channels[0].uid);
   }, [channel, channels]);
 
@@ -135,7 +140,9 @@ export default function Channels() {
         borderRadius: '8px',
         // lineHeight: '20px'
       }}>ADD</button>
-      <NameTextbox></NameTextbox>
+      <NameTextbox></NameTextbox><br></br>
+      <button onClick={() => setHomeServer(null)}>leave</button><br></br>
+      <LoginQR></LoginQR>
     </div>
   );
 }

@@ -16,6 +16,12 @@ files.forEach(file => {
     copyFileSync(resolve('./packages/renderer/dist/', file), './cordova/www/app.js');
 });
 
-execSync('npm run cordova run', {
-  cwd: resolve('./cordova'),
-});
+try {
+  const proc = execSync('npm run cordova run', {
+    cwd: resolve('./cordova'),
+  });
+} catch(e) {
+  console.log(e.output.toString());
+}
+
+// console.log(proc.toString());

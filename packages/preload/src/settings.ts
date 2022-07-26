@@ -5,6 +5,7 @@ import {
   mkdirSync,
   existsSync,
 } from 'fs';
+import { URL } from 'url';
 
 const appdataPath = process.env.APPDATA || // windows
   (process.platform == 'darwin' ?
@@ -13,6 +14,7 @@ const appdataPath = process.env.APPDATA || // windows
 
 const cornerDataPath = resolve(appdataPath, 'corner');
 const clientIdPath = resolve(cornerDataPath, 'clientId');
+const homeServerPath = resolve(cornerDataPath, 'homeServer');
 
 // --- setup ---
 
@@ -39,4 +41,22 @@ export function setClientId(id: string) {
   if(!validUuid(id)) return false;
   writeFileSync(clientIdPath, id);
   return true;
+}
+
+export function getHomeServer() {
+  const url = readFileSync(homeServerPath).toString()
+  try {
+    new URL(url);
+    return url;
+  } catch(e) {
+    return null;
+  }
+}
+
+export function setHomeServer(url: string) {
+  if(url === null) {
+    writeFileSync(homeServerPath, '');
+    return null
+  }
+  writeFileSync(homeServerPath, url);
 }

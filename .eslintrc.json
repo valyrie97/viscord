@@ -21,7 +21,8 @@
   "ignorePatterns": [
     "node_modules/**",
     "**/dist/**",
-    "cordova/**"
+    "cordova/**",
+    "scripts/**"
   ],
   "rules": {
     "@typescript-eslint/no-unused-vars": "error",

@@ -37,7 +37,7 @@ export function Message({
         }}>
           <TimeAgo
             date={message.timestamp}
-            formatter={(t, u) => u === 'second' ? 'Just Now' : ('' + t + u[0])}
+            formatter={(t, u) => u === 'second' ? 'Now' : ('' + t + u[0])}
           ></TimeAgo>
         </span>
         <span style={{
