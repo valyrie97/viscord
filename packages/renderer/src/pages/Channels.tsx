@@ -4,6 +4,7 @@ import { useApi } from '../lib/useApi';
 import type { IMessage } from './Message';
 import NameTextbox from './NameTextbox';
 import LoginQR from './LoginQR';
+import Totp from '../components/Totp';
 
 interface IChannel {
   uid: string;
@@ -143,6 +144,7 @@ export default function Channels() {
       <NameTextbox></NameTextbox><br></br>
       <button onClick={() => setHomeServer(null)}>leave</button><br></br>
       <LoginQR></LoginQR>
+      <Totp></Totp>
     </div>
   );
 }

@@ -80,8 +80,6 @@ export default function App() {
   // font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   // color: #f8f8f2;
   // background: #282a36;
-  
-  
 
   return (
     <ClientIdContext.Provider value={clientIdContextValue}>

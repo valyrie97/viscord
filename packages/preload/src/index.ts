@@ -6,6 +6,6 @@ export {
   getClientId,
   setClientId,
   getHomeServer,
-  setHomeServer,
+  setHomeServer
 } from './settings';
 export {versions} from './versions';

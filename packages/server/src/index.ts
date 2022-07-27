@@ -4,6 +4,7 @@ import { expose } from './lib/WebSocketServer';
 import message from './routers/message';
 import channel from './routers/channel';
 import client from './routers/client';
+import totp from './routers/totp';
 
 const api = router({
   up() {
@@ -15,6 +16,7 @@ const api = router({
   channels: channel,
   client: client,
   clients: client,
+  totp: totp,
 });
 
 expose(api, 3000);
