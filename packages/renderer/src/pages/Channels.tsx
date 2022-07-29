@@ -1,10 +1,14 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { ChannelContext, ClientIdContext, HomeServerContext } from './App';
 import { useApi } from '../lib/useApi';
 import type { IMessage } from './Message';
 import NameTextbox from './NameTextbox';
 import LoginQR from './LoginQR';
 import Totp from '../components/Totp';
+import useChannel from '../hooks/useChannel';
+import useClientId from '../hooks/useClientId';
+import useHomeServer from '../contexts/PersistentState/useHomeServerNative';
+import Logout from '../components/Logout';
+import { CgHashtag } from 'react-icons/cg';
 
 interface IChannel {
   uid: string;
@@ -12,11 +16,11 @@ interface IChannel {
 }
 
 function Hashmark() {
-  return <span style={{
+  return <CgHashtag style={{
     fontWeight: 'bold',
     marginRight: '8px',
     marginLeft: '8px',
-  }}>#</span>;
+  }}>#</CgHashtag>;
 }
 
 interface IUnreads {
@@ -28,10 +32,10 @@ export default function Channels() {
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [unreads, setUnreads] = useState<IUnreads>({});
   
-  const { channel, setChannel } = useContext(ChannelContext);
-  const { clientId } = useContext(ClientIdContext);
+  const { channel, setChannel } = useChannel()
+  const { clientId } = useClientId()
 
-  const { setHomeServer } = useContext(HomeServerContext);
+  const { setHomeServer } = useHomeServer();
 
   const { send } = useApi({
     'channels:list'(data: IChannel[]) {
@@ -142,7 +146,7 @@ export default function Channels() {
         // lineHeight: '20px'
       }}>ADD</button>
       <NameTextbox></NameTextbox><br></br>
-      <button onClick={() => setHomeServer(null)}>leave</button><br></br>
+      <Logout></Logout><br></br>
       {/* <LoginQR></LoginQR> */}
       {/* <Totp></Totp> */}
     </div>

@@ -1,10 +1,11 @@
 import { useContext, useEffect, useState } from "react";
-import { ClientIdContext, HomeServerContext } from "./App";
 import QR from 'qrcode';
+import useHomeServer from "../contexts/PersistentState/useHomeServerNative";
+import useClientId from "../hooks/useClientId";
 
 export default function LoginQR() {
-  const { homeServer } = useContext(HomeServerContext);
-  const { clientId } = useContext(ClientIdContext);
+  const { homeServer } = useHomeServer()
+  const { clientId } = useClientId();
   const [qr, setQr] = useState<string | null>(null);
 
   useEffect(() => {

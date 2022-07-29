@@ -1,15 +1,15 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import 'reactjs-popup/dist/index.css';
 import { useApi } from '../lib/useApi';
-import { ClientIdContext } from '../pages/App';
 import QR from 'qrcode';
-import { usePrevious } from './usePrevious';
+import { usePrevious } from '../hooks/usePrevious';
+import useClientId from '../hooks/useClientId';
 
 export default function Totp () {
 
   const [open, setOpen] = useState(false);
   const previousOpen = usePrevious(open);
-  const { clientId } = useContext(ClientIdContext);
+  const { clientId } = useClientId()
   const [qr, setQr] = useState<string | null>(null);
   const [key, setKey] = useState<string>('');
 

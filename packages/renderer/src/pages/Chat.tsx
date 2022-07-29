@@ -1,10 +1,11 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { v4 } from 'uuid';
 import { useApi } from '../lib/useApi';
-import { ChannelContext, ClientIdContext } from './App';
 import type { IMessage} from './Message';
 import { Message } from './Message';
 import { MdSend } from 'react-icons/md';
+import useChannel from '../hooks/useChannel';
+import useClientId from '../hooks/useClientId';
 
 function createMessage(from: string, text: string,
     channel: string, t = 0): IMessage {
@@ -26,8 +27,8 @@ export default () => {
 
   const textBoxRef = useRef<HTMLDivElement>(null);
   
-  const { channel, setChannel } = useContext(ChannelContext);
-  const { clientId } = useContext(ClientIdContext);
+  const { channel, setChannel } = useChannel();
+  const { clientId } = useClientId();
 
   const { send } = useApi({
     'message:message'(data: IMessage) {

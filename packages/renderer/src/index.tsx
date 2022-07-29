@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import Sidebar from './components/Sidebar';
-import App from './pages/App';
+import App from './App';
 
 const container = document.getElementById('app');
 if(container !== null) {

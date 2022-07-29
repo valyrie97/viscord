@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useCallback, useContext, useRef } from "react"
 import ServerConnection from "../components/ServerConnection";
 import { useApi } from "../lib/useApi";
-import { ClientIdContext, HomeServerContext, SessionTokenContext, TransparencyContext } from "./App"
 import QR from 'qrcode';
+import useSessionToken from "../hooks/useSessionToken";
 
 export default function NewAccount() {
 
@@ -73,27 +73,24 @@ export default function NewAccount() {
     if(connecting) return;
     setHomeServer(url);
     setConnecting(true);
-    try {
-      const ws = new WebSocket(url);
-  
-      ws.addEventListener('open', () => {
-        setConnecting(false);
-        setConnection(ws);
-        setConnectionError('');
-      });
-  
-      ws.addEventListener('close', (e) => {
-        setConnecting(false);
-        setConnection(null);
-        console.log(e)
-      });
+    
+    const ws = new WebSocket(url);
 
-      ws.addEventListener('error', (e) => {
-        setConnectionError('Couldn\'t connect to ' + url)
-      });
-    } catch(e: any) {
-      console.log('ASDFASDFASDF');
-    }
+    ws.addEventListener('open', () => {
+      setConnecting(false);
+      setConnection(ws);
+      setConnectionError('');
+    });
+
+    ws.addEventListener('close', (e) => {
+      setConnecting(false);
+      setConnection(null);
+      console.log(e)
+    });
+
+    ws.addEventListener('error', (e) => {
+      setConnectionError('Connection failed')
+    });
   }, [connecting])
 
   return (
@@ -101,17 +98,36 @@ export default function NewAccount() {
       display: 'grid',
       placeContent: 'center center',
       height: '100%',
+      textAlign: 'center'
     }}>
       {returning ? (
-        <>
-          Login
+        <div>
+          <span>
+            Login
+          </span>
+          &nbsp;
+          &nbsp;
+          &nbsp;
           <a href="#" onClick={() => setReturning(false)}>Sign up</a>
-        </>
+        </div>
       ) : (
         <>
-          <input ref={homeServerInputRef} defaultValue="wss://macos.valnet.xyz" disabled={connection !== null}></input>
-          <button onClick={() => connect(homeServerInputRef.current?.value ?? '')} disabled={connection !== null}>Next</button>
-          {connecting ? `Connecting to ${homeServer}` : connectionError}
+          <div>
+            <a href="#" onClick={() => setReturning(true)}>
+              Login
+            </a>
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            <span>
+              Sign up
+            </span>
+          </div>
+          <br></br>
+          <label>Home Server URL</label>
+          <input style={{textAlign: 'center'}} ref={homeServerInputRef} defaultValue="wss://macos.valnet.xyz" disabled={connection !== null || connecting}></input>
+          <button onClick={() => connect(homeServerInputRef.current?.value ?? '')} disabled={connection !== null || connecting}>Next</button>
+          {connecting ? `Connecting...` : connectionError}
           <br></br>
           {connection !== null && (
             <ServerConnection url={homeServer ?? ''}>
@@ -144,7 +160,7 @@ const SignUp = (props: any) => {
   const [clientId, setClientId] = useState<string | null>(null);
   // const [totpToken, setTotpToken] = useState<string | null>(null);
   const [qr, setQr] = useState<string | null>(null);
-  const { setSessionToken } = useContext(SessionTokenContext)
+  const { setSessionToken } = useSessionToken();
 
   const { send } = useApi({
     'client:new'(data: any) {

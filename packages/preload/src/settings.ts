@@ -42,10 +42,8 @@ export function getClientId() {
   return fileContents;
 }
 
-export function setClientId(id: string) {
-  if(!validUuid(id)) return false;
-  writeFileSync(clientIdPath, id);
-  return true;
+export function setClientId(id: string | null) {
+  writeFileSync(clientIdPath, id ?? '');
 }
 
 export function getHomeServer() {
@@ -58,12 +56,8 @@ export function getHomeServer() {
   }
 }
 
-export function setHomeServer(url: string) {
-  if(url === null) {
-    writeFileSync(homeServerPath, '');
-    return null
-  }
-  writeFileSync(homeServerPath, url);
+export function setHomeServer(url: string | null) {
+  writeFileSync(homeServerPath, url ?? '');
 }
 
 export function getSessionToken() {
@@ -72,6 +66,6 @@ export function getSessionToken() {
   return token;
 }
 
-export function setSessionToken(token: string) {
-  writeFileSync(sessionTokenPath, token);
+export function setSessionToken(token: string | null) {
+  writeFileSync(sessionTokenPath, token ?? '');
 }

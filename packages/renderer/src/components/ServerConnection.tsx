@@ -1,6 +1,5 @@
 import { createContext, PropsWithChildren, ReactNode, useEffect, useMemo } from "react";
 import { connectApi } from "../lib/api";
-import { usePrevious } from "./usePrevious";
 
 interface ServerConnectionProps {
   children: ReactNode,
