@@ -50,7 +50,7 @@ export default function Channels() {
   }, [channels, unreads]);
 
   useEffect(() => {
-    console.log('unreads', unreads);
+    // console.log('unreads', unreads);
   }, [unreads]);
 
   useEffect(() => {
@@ -60,10 +60,10 @@ export default function Channels() {
   }, [channels]);
 
   useEffect(() => {
-    console.log(channel, channels);
+    // console.log(channel, channels);
     if(channels.length === 0) return;
     if(channel !== null) return;
-    console.log('this is what setChannel is', setChannel);
+    // console.log('this is what setChannel is', setChannel);
     setChannel(channels[0].uid);
   }, [channel, channels]);
 
@@ -143,8 +143,8 @@ export default function Channels() {
       }}>ADD</button>
       <NameTextbox></NameTextbox><br></br>
       <button onClick={() => setHomeServer(null)}>leave</button><br></br>
-      <LoginQR></LoginQR>
-      <Totp></Totp>
+      {/* <LoginQR></LoginQR> */}
+      {/* <Totp></Totp> */}
     </div>
   );
 }

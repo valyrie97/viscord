@@ -3,12 +3,8 @@ import * as preload from '#preload';
 console.log('#preload', preload);
 
 const functions: any = (function() {
-  const electron = !!preload.getClientId;
+  const electron = !!preload.versions;
   const cordova = 'cordova' in globalThis;
-
-  console.log(preload);
-
-  // alert('Electron: ' + electron + '\nCordova: ' + cordova);
 
   if(electron) {
     return preload;
@@ -39,3 +35,5 @@ export const getClientId = functions.getClientId;
 export const setClientId = functions.setClientId;
 export const getHomeServer = functions.getHomeServer;
 export const setHomeServer = functions.setHomeServer;
+export const getSessionToken = functions.getSessionToken;
+export const setSessionToken = functions.setSessionToken;

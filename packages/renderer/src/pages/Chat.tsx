@@ -4,7 +4,7 @@ import { useApi } from '../lib/useApi';
 import { ChannelContext, ClientIdContext } from './App';
 import type { IMessage} from './Message';
 import { Message } from './Message';
-import { MdSend } from 'react-icons/md'
+import { MdSend } from 'react-icons/md';
 
 function createMessage(from: string, text: string,
     channel: string, t = 0): IMessage {
@@ -41,7 +41,6 @@ export default () => {
   }, [messages]);
 
   useEffect(() => {
-    console.log('sending recents request');
     send('message:recent', { channel });
   }, [channel]);
 

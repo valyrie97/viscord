@@ -7,8 +7,12 @@ import _get from '../db/snippets/client/get.sql';
 import rename from '../db/snippets/client/rename.sql';
 
 export default router({
-  async 'new'() {
-    const response = await query(_new);
+  async 'new'(data: any) {
+    const response = await query(
+      _new,
+      data.displayName,
+      data.username,
+    );
     if(response === null) return;
     return reply(response[0][0].uid);
   },

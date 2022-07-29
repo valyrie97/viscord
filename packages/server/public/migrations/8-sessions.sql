@@ -22,4 +22,7 @@ CREATE TABLE `sessions` (
 );
 
 ALTER TABLE `sessions`
-ADD FOREIGN KEY (`client_uid`) REFERENCES `clients` (`uid`)
+ADD FOREIGN KEY (`client_uid`) REFERENCES `clients` (`uid`);
+
+ALTER TABLE `sessions`
+CHANGE `id` `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;

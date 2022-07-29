@@ -6,6 +6,8 @@ export {
   getClientId,
   setClientId,
   getHomeServer,
-  setHomeServer
+  setHomeServer,
+  getSessionToken,
+  setSessionToken
 } from './settings';
 export {versions} from './versions';

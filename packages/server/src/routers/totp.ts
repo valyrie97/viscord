@@ -4,6 +4,29 @@ import { randomBytes } from 'crypto';
 import getToken from 'totp-generator';
 import query from "../db/query";
 import confirm from '../db/snippets/totp/confirm.sql';
+import addSessionToken from '../db/snippets/session/new.sql';
+
+const validateTotp = (key: string, code: string) => {
+  return [
+    getToken(key, { timestamp: Date.now() }),
+    getToken(key, { timestamp: Date.now() - 30 * 1000 }),
+    getToken(key, { timestamp: Date.now() - 2 * 30 * 1000})
+  ].includes(code);
+}
+
+const generateSessionToken = async (clientId: string) => {
+  let token = '';
+  for(let i = 0; i < 64; i ++) {
+    token += rb32()
+  }
+  console.log('created session token', clientId, token);
+  //           scnd   min  hr  day   year
+  const year = 1000 * 60 * 60 * 24 * 365;
+  const expiration = Date.now() + year;
+  await query(addSessionToken, clientId, expiration, token);
+  return token;
+}
+
 //         0               1               2               3               4
 //  |               |               |               |               |               |
 //  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0
@@ -15,7 +38,7 @@ const mask = (len: number) => Math.pow(2, len) - 1;
 const manipulate = (b: number, start: number, len: number, end: number) =>
   (((b >> start) & mask(len)) << end) & (mask(len) << end)
 
-const dict = (n: number): string => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'.at(n) as string;
+const dict = (n: number): string => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[n] as string;
 
 function rb32() {
   const bytes = randomBytes(5);
@@ -51,8 +74,7 @@ export default router({
   async 'confirm'(data: any) {
     const { clientId, code } = data;
     const key = proposals[clientId];
-    const trueCode = getToken(key);
-    if(trueCode !== code) return reply({
+    if(!validateTotp(key, code)) return reply({
       err: 'codes did not match!'
     });
     
@@ -64,6 +86,7 @@ export default router({
     });
 
     return reply({
+      token: await generateSessionToken(clientId),
       err: null
     });
   }

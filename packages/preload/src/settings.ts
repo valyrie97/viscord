@@ -15,6 +15,7 @@ const appdataPath = process.env.APPDATA || // windows
 const cornerDataPath = resolve(appdataPath, 'corner');
 const clientIdPath = resolve(cornerDataPath, 'clientId');
 const homeServerPath = resolve(cornerDataPath, 'homeServer');
+const sessionTokenPath = resolve(cornerDataPath, 'sessionToken');
 
 // --- setup ---
 
@@ -22,6 +23,10 @@ if(!existsSync(cornerDataPath))
   mkdirSync(cornerDataPath);
 if(!existsSync(clientIdPath))
   writeFileSync(clientIdPath, '');
+if(!existsSync(homeServerPath))
+  writeFileSync(homeServerPath, '');
+if(!existsSync(sessionTokenPath))
+  writeFileSync(sessionTokenPath, '');
 
 // --- helpers ---
 
@@ -59,4 +64,14 @@ export function setHomeServer(url: string) {
     return null
   }
   writeFileSync(homeServerPath, url);
+}
+
+export function getSessionToken() {
+  const token = readFileSync(sessionTokenPath).toString();
+  if(token.length !== 512) return null;
+  return token;
+}
+
+export function setSessionToken(token: string) {
+  writeFileSync(sessionTokenPath, token);
 }

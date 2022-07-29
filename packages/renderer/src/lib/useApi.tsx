@@ -1,16 +1,19 @@
-import { useEffect } from 'react';
-import { registerRouter, router, send, unregisterRouter } from './api';
+import { useContext, useEffect } from 'react';
+import { ServerConnectionContext } from '../components/ServerConnection';
+import { Router, router, RouterObject } from './api';
 
-export function useApi(actions: Function | object, deps: any[]) {
+export function useApi(actions: Router | RouterObject, deps: any[]) {
+  const connection = useContext(ServerConnectionContext);
   const _router = typeof actions === 'object' ? router(actions) : actions;
+
   useEffect(() => {
-    registerRouter(_router);
+    connection.registerRouter(_router);
     return () => {
-      unregisterRouter(_router);
+      connection.unregisterRouter(_router);
     };
   }, deps);
 
   return {
-    send: send,
+    send: connection.send,
   };
 }

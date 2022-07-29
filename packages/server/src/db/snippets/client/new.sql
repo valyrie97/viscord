@@ -1,1 +1,1 @@
-CALL new_client("Anonymous");
+CALL new_client(?, ?);

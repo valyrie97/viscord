@@ -1,9 +1,12 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import Sidebar from './components/Sidebar';
 import App from './pages/App';
 
-ReactDOM.render(
-  <App></App>,
-  document.getElementById('app'),
-);
+const container = document.getElementById('app');
+if(container !== null) {
+  const root = ReactDOM.createRoot(container)
+  root.render(<App></App>);
+} else {
+  throw new Error('Failed to initialize app, container not found!');
+}
