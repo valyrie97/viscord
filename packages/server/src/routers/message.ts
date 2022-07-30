@@ -7,22 +7,30 @@ import { broadcast, reply } from '../lib/WebSocketServer';
 
 export default router({
   async message(data: any) {
+    if(!('$clientId' in data)) {
+      console.error('unauthenticated message rejected.');
+      return null;
+    }
     const response = await query(
       newMessage,
       data.text,
-      data.from,
+      data.$clientId,
       data.uid,
       data.timestamp,
       data.channel,
     );
     if(response === null) return;
     // translate from to a real name
-    const nameRes = await query(getName, data.from);
+    const nameRes = await query(getName, data.$clientId);
     if(nameRes === null) return;
     data.from = nameRes[0].name;
     return broadcast(data);
   },
   async recent(data: any) {
+    if(!('$clientId' in data)) {
+      console.error('unauthenticated request rejected.');
+      return null;
+    }
     const messages = await query(recentMessages, data.channel);
     if(messages === null) return;
     return reply({

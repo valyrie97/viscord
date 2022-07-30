@@ -6,6 +6,7 @@ import { Message } from './Message';
 import { MdSend } from 'react-icons/md';
 import useChannel from '../hooks/useChannel';
 import useClientId from '../hooks/useClientId';
+import useSessionToken from '../hooks/useSessionToken';
 
 function createMessage(from: string, text: string,
     channel: string, t = 0): IMessage {
@@ -21,6 +22,7 @@ function createMessage(from: string, text: string,
 export default () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [hist, setHist] = useState(false);
+  const { sessionToken } = useSessionToken();
   
   const CHATBOX_SIZE = 64;
   const PADDING = 8;
@@ -42,23 +44,24 @@ export default () => {
   }, [messages]);
 
   useEffect(() => {
-    send('message:recent', { channel });
-  }, [channel]);
+    send('message:recent', { channel, sessionToken });
+  }, [channel, sessionToken]);
 
   const sendMessage = useCallback(() => {
     if(textBoxRef.current === null) return;
     if(channel === null) return;
     if(clientId === null) return;
+    if(sessionToken === null) return;
     send(
       'message:message',
-      createMessage(
+      { ...createMessage(
         clientId,
         textBoxRef.current.innerText,
         channel,
-      ),
+      ), sessionToken },
     );
     textBoxRef.current.innerText = '';
-  }, [channel]);
+  }, [channel, sessionToken]);
 
   const keyDown = useCallback((evt: any) => {
     if(evt.key === 'Enter') {

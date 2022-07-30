@@ -1,5 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { inspect } from 'util';
+import { validateSessionToken } from '../routers/session';
 
 export function expose(router: Function, port: number) {
   const wss = new WebSocketServer({
@@ -18,9 +19,14 @@ export function expose(router: Function, port: number) {
         }
         const {action, data} = message;
         try {
+          if(typeof data === 'object' && 'sessionToken' in data) {
+            const auth = await validateSessionToken(data.sessionToken);
+            delete data['sessionToken'];
+            if(auth === null) return;
+            data.$clientId = auth;
+          }
           console.log('[IN]', action, data);
           const _return = await (router(action, data) as unknown as Promise<any>);
-          // console.log(_return);
           if(_return) {
             try {
               switch(_return.type) {
