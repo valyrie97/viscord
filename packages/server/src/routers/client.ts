@@ -16,10 +16,14 @@ export default router({
     if(response === null) return;
     return reply(response[0][0].uid);
   },
-  async 'get'(uid: string) {
-    const response = await query(_get, uid);
+  async 'get'(data: any) {
+    const response = await query(_get, data.clientId);
     if(response === null) return;
-    return reply(response[0].name);
+    return reply({
+      name: response[0].name,
+      clientId: response[0].uid,
+      username: response[0].username
+    });
   },
   async 'rename'(data: any) {
     const { clientId, name } = data;

@@ -40,9 +40,9 @@ export default function Sidebar(props: {
 
   useEffect(() => {
     if(screenRef === null) return;
-    screenRef.addEventListener('touchstart', pointerDown);
-    screenRef.addEventListener('touchend', pointerUp);
-    screenRef.addEventListener('touchmove', pointerMove);
+    screenRef.addEventListener('touchstart', pointerDown, { passive: true });
+    screenRef.addEventListener('touchend', pointerUp, { passive: true });
+    screenRef.addEventListener('touchmove', pointerMove, { passive: true });
     // screenRef.addEventListener('pointercancel', pointerUp);
     return () => {
       screenRef.removeEventListener('touchstart', pointerDown);

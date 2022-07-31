@@ -46,6 +46,12 @@ const migrationConnection = createConnection({
   multipleStatements: true,
 });
 
+function keepAlive() {
+  connection.ping();
+  migrationConnection.ping();
+}
+setInterval(keepAlive, 60000); // ping to DB every minute
+
 const connected: Promise<null> = new Promise((res, rej) => {
   migrationConnection.connect((err) => {
     if(err === null) {

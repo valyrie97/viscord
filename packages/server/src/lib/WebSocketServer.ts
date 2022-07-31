@@ -25,6 +25,9 @@ export function expose(router: Function, port: number) {
             if(auth === null) return;
             data.$clientId = auth;
           }
+          if(typeof data !== 'object') {
+            throw new Error('action ' + action + ' payload not an object');
+          }
           console.log('[IN]', action, data);
           const _return = await (router(action, data) as unknown as Promise<any>);
           if(_return) {

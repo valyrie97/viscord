@@ -15,8 +15,8 @@ export default function NameTextbox() {
   const [inputElement, setInputElement] = useState<HTMLInputElement | null>(null);
 
   const { send } = useApi({
-    'client:get'(_name: string) {
-      setName(_name);
+    'client:get'(data: any) {
+      setName(data.name);
     },
   }, [name, clientId]);
 
@@ -33,7 +33,7 @@ export default function NameTextbox() {
   useEffect(() => {
     if(clientId === null) return;
     if(inputElement === null) return;
-    send('client:get', clientId);
+    send('client:get', { clientId });
   }, [inputElement, clientId]);
 
   return <input

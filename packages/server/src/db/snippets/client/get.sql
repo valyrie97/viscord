@@ -1,1 +1,1 @@
-SELECT name FROM clients WHERE uid=?
+SELECT name, username, uid FROM clients WHERE uid=?

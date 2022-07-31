@@ -9,18 +9,11 @@ import useClientId from '../hooks/useClientId';
 import useHomeServer from '../contexts/PersistentState/useHomeServerNative';
 import Logout from '../components/Logout';
 import { CgHashtag } from 'react-icons/cg';
+import Channel from './Channel';
 
 interface IChannel {
   uid: string;
   name: string;
-}
-
-function Hashmark() {
-  return <CgHashtag style={{
-    fontWeight: 'bold',
-    marginRight: '8px',
-    marginLeft: '8px',
-  }}>#</CgHashtag>;
 }
 
 interface IUnreads {
@@ -81,7 +74,7 @@ export default function Channels() {
 
   useEffect(() => {
     if(clientId === null) return;
-    send('client:get', clientId);
+    send('client:get', { clientId });
   }, [clientId]);
 
   const textbox = useRef<HTMLInputElement>(null);
@@ -99,30 +92,14 @@ export default function Channels() {
     }}>
       <br></br>
       {channels.map(c => (
-        <div key={c.uid} style={{
-          margin: '8px 0px',
-          color: channel === c.uid ? 'cyan' : 'inherit',
-          cursor: 'pointer',
-        }} onClick={() => {
-          setChannel(c.uid);
-        }}>
-          <Hashmark></Hashmark>
-          {(c.uid in unreads) && (unreads[c.uid] > 0) && (
-            <span style={{ paddingRight: '8px' }}>({unreads[c.uid]})</span>
-          )}
-          <span style={{
-            fontWeight: (unreads[c.uid] ?? 0) > 0 ? 'bold' : '300',
-          }}>
-            {c.name}
-          </span>
-          <a style={{
-            color: 'rgba(0, 100, 200, 1)',
-            marginLeft: '8px',
-            fontSize: '10px',
-          }} href="#" onClick={() => {}}>Delete</a>
-        </div>
+        <Channel
+          key={c.uid}
+          uid={c.uid}
+          unread={unreads[c.uid] ?? 0}
+          name={c.name}
+        ></Channel>
       ))}
-      <Hashmark></Hashmark><input
+      {/* <input
         ref={textbox}
         style={{
           background: '#343746',
@@ -146,7 +123,7 @@ export default function Channels() {
         // lineHeight: '20px'
       }}>ADD</button>
       <NameTextbox></NameTextbox><br></br>
-      <Logout></Logout><br></br>
+      <Logout></Logout><br></br> */}
       {/* <LoginQR></LoginQR> */}
       {/* <Totp></Totp> */}
     </div>

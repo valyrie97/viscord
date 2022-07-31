@@ -1,6 +1,6 @@
 import * as preload from '#preload';
 
-console.log('#preload', preload);
+// console.log('#preload', preload);
 
 const functions: any = (function() {
   const electron = !!preload.versions;
@@ -29,7 +29,7 @@ const functions: any = (function() {
 })();
 
 
-console.log('native functions loaded', functions);
+// console.log('native functions loaded', functions);
 
 export const getClientId = functions.getClientId;
 export const setClientId = functions.setClientId;

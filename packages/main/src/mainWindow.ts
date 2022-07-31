@@ -12,6 +12,8 @@ async function createWindow() {
     },
   });
 
+  browserWindow.setMenu(null);
+
   /**
    * If you install `show: true` then it can cause issues when trying to close the window.
    * Use `show: false` and listener events `ready-to-show` to fix these issues.

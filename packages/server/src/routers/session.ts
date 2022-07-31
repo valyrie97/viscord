@@ -15,7 +15,6 @@ export default router({
 });
 
 export async function validateSessionToken(token: string) {
-  console.log('ASDASDASDASD')
   const res = await query(_get, token);
   if(res === null) return null;
   if(res.length === 1 && res[0].expires > Date.now())

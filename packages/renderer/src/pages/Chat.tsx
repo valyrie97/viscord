@@ -44,7 +44,7 @@ export default () => {
   }, [messages]);
 
   useEffect(() => {
-    send('message:recent', { channel, sessionToken });
+    send('message:recent', { channel });
   }, [channel, sessionToken]);
 
   const sendMessage = useCallback(() => {
@@ -54,11 +54,11 @@ export default () => {
     if(sessionToken === null) return;
     send(
       'message:message',
-      { ...createMessage(
+      createMessage(
         clientId,
         textBoxRef.current.innerText,
         channel,
-      ), sessionToken },
+      )
     );
     textBoxRef.current.innerText = '';
   }, [channel, sessionToken]);
@@ -143,9 +143,11 @@ export default () => {
           cursor: 'pointer',
           display: 'grid',
           placeItems: 'center center',
-          fontSize: '32px',
+          paddingLeft: '4px',
+          // paddingTop: '2px',
+          boxSizing: 'border-box',
         }}>
-          <MdSend></MdSend>
+          <MdSend size={24}></MdSend>
         </div>
       </div>
     </div>

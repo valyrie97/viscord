@@ -8,7 +8,7 @@ export function connectApi(url: string) {
   const connect = async () => {
     try {
       connectionAttempts ++;
-      console.log('connecting to', url);
+      // console.log('connecting to', url);
       socket = new WebSocket(url);
     } catch (e) {
       if(destroy) return;
@@ -30,14 +30,12 @@ export function connectApi(url: string) {
   
     socket.addEventListener('message', (event) => {
       const {action, data} = JSON.parse(event.data);
-      console.log('[IN]', action, data);
+      // console.debug('[IN]', action, data);
       const routeFound = routers
         .map(router => router(action, data))
         .reduce((a, b) => a + b, 0);
       if(routeFound === 0) {
         console.warn(`route <${action}> not found`);
-      } else {
-        console.log(`routed to ${routeFound} elements`);
       }
     });
   
