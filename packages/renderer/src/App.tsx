@@ -38,6 +38,15 @@ export default function App() {
           --red: #ff5555;
           --yellow: #f1fa8c;
           --primary: var(--purple);
+          --neutral-1: #191a21;
+          --neutral-2: #21222c;
+          --neutral-3: #282a36;
+          --neutral-4: #343746;
+          --neutral-5: #44475a;
+          --neutral-6: #717380;
+          --neutral-7: #9ea0a6;
+          --neutral-8: #cbcccc;
+          --neutral-9: #f8f8f2;
         }
         a {
           color: var(--cyan);

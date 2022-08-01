@@ -22,8 +22,8 @@ export default function Channel(props: ChannelProps) {
         gridTemplateColumns: 'min-content 1fr',
         color: selected ? 'cyan' : 'inherit',
         cursor: 'pointer',
-        background: selected ? 'var(--current-line)' :
-                       hover ? 'rgba(255, 255, 255, 0.1)' :
+        background: selected ? 'var(--neutral-4)' :
+                       hover ? 'var(--neutral-3)' :
                                'inherit',
         borderRadius: '8px',
         // placeItems: 'left center',
@@ -35,18 +35,17 @@ export default function Channel(props: ChannelProps) {
       ref={ref}
     >
       <CgHashtag color={
-          selected ? 'var(--foreground)' :
-          hover ? 'var(--comment)' :
-          'var(--current-line)'
+          selected ? 'var(--neutral-9)' :
+             hover ? 'var(--neutral-7)' :
+                     'var(--neutral-7)'
         } size={24} style={{
-        fontWeight: 'bold',
         margin: '4px',
       }}></CgHashtag>
       <div style={{
         lineHeight: '32px',
-        color: selected ? 'var(--foreground)' :
-                  hover ? 'var(--comment)' :
-                          'var(--current-line)'
+        color: selected ? 'var(--neutral-9)' :
+                  hover ? 'var(--neutral-9)' :
+                          'var(--neutral-7)'
       }}>
         {name.toLowerCase().replaceAll(' ', '-').trim()}
       </div>

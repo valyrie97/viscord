@@ -1,14 +1,14 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react';
 import { useApi } from '../lib/useApi';
 import type { IMessage } from './Message';
-import NameTextbox from './NameTextbox';
-import LoginQR from './LoginQR';
-import Totp from '../components/Totp';
 import useChannel from '../hooks/useChannel';
 import useClientId from '../hooks/useClientId';
 import useHomeServer from '../contexts/PersistentState/useHomeServerNative';
-import Logout from '../components/Logout';
-import { CgHashtag } from 'react-icons/cg';
 import Channel from './Channel';
 
 interface IChannel {
@@ -27,8 +27,6 @@ export default function Channels() {
   
   const { channel, setChannel } = useChannel()
   const { clientId } = useClientId()
-
-  const { setHomeServer } = useHomeServer();
 
   const { send } = useApi({
     'channels:list'(data: IChannel[]) {
@@ -89,6 +87,7 @@ export default function Channels() {
     <div style={{
       height: '100%',
       background: '#21222c',
+      padding: '0px 8px'
     }}>
       <br></br>
       {channels.map(c => (
@@ -99,33 +98,6 @@ export default function Channels() {
           name={c.name}
         ></Channel>
       ))}
-      {/* <input
-        ref={textbox}
-        style={{
-          background: '#343746',
-          border: 'none',
-          padding: '8px',
-          borderRadius: '8px',
-          outline: 'none',
-          color: 'white',
-          fontSize: '16px',
-          width: '90px',
-        }}
-      /><button onClick={add} style={{
-        marginLeft: '8px',
-        background: '#bd93f9',
-        border: 'none',
-        color: 'white',
-        padding: '8px',
-        fontSize: '16px',
-        cursor: 'pointer',
-        borderRadius: '8px',
-        // lineHeight: '20px'
-      }}>ADD</button>
-      <NameTextbox></NameTextbox><br></br>
-      <Logout></Logout><br></br> */}
-      {/* <LoginQR></LoginQR> */}
-      {/* <Totp></Totp> */}
     </div>
   );
 }
