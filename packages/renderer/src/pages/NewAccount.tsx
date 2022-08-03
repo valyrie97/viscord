@@ -78,6 +78,7 @@ export default function NewAccount() {
   const [connectionError, setConnectionError] = useState('');
   const [edittingHomeServer, setEdittingHomeServer] = useState(false);
   const [homeServerInputRef, homeServerHovered] = useHover<HTMLInputElement>();
+  const [homeServerEditButtonHoverRef, homeServerEditButtonHovered] = useHover<HTMLDivElement>();
 
   useEffect(() => {
     if(homeServer === null) {
@@ -228,23 +229,38 @@ export default function NewAccount() {
           transform: 'skew(6deg, 0deg)',
           margin: '8px',
         }}>
-          <AiOutlineEdit
+          <div
+            ref={homeServerEditButtonHoverRef}
             style={{
-              display: homeServerHovered ? 'initial' : 'none',
-              float: 'right',
+              display: (homeServerHovered || homeServerEditButtonHovered) ? 'initial' : 'none',
               position: 'absolute',
               top: '8px',
               right: '12px',
-              zIndex: '1'
+              zIndex: '1',
+              cursor: 'pointer',
             }}
-            size={24}
-          ></AiOutlineEdit>
+            onClick={() => setEdittingHomeServer(true)}
+          >
+            <AiOutlineEdit
+              size={24}
+            ></AiOutlineEdit>
+          </div>
           <Input
+            focusOnEenable={true}
             hoverRef={homeServerInputRef}
             disabled={!edittingHomeServer}
             value={homeServerInput}
             setValue={setHomeServerInput}
-            onKeyPress={(e: any) => e.code === 'Enter' && (setHomeServer(homeServerInput))}
+            onClick={(e) => {
+              setEdittingHomeServer(true);
+            }}
+            onKeyPress={(e: any) => {
+              if(e.code === 'Enter') {
+                if(homeServer === homeServerInput)
+                  return setEdittingHomeServer(false);
+                setHomeServer(homeServerInput)
+              }
+            }}
           ></Input>
         </div>
         <Label>Username</Label>
@@ -304,7 +320,9 @@ interface InputProps {
   default?: string;
   onKeyPress?: (e: any) => void;
   disabled?: boolean;
-  hoverRef?: React.LegacyRef<HTMLInputElement>
+  hoverRef?: React.LegacyRef<HTMLInputElement>;
+  onClick?: (e: any) => void;
+  focusOnEenable?: boolean
 }
 
 const Input = (props: InputProps) => {
@@ -312,13 +330,37 @@ const Input = (props: InputProps) => {
   const _default = props.default ?? '';
   const [focused, setFocused] = useState(false);
   const disabled = props.disabled ?? false;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const focusOnEenable = props.focusOnEenable ?? false;
+
+  useEffect(() => {
+    if(!focusOnEenable) return;
+    if(!disabled) {
+      setFocused(true);
+      inputRef.current?.focus()
+      inputRef.current?.setSelectionRange(inputRef.current?.value.length, inputRef.current?.value.length)
+    }
+  }, [disabled, focusOnEenable, inputRef]);
+
+  useEffect(() => {
+    if(disabled) setFocused(false);
+  }, [disabled])
 
   return (
-    <div style={{
-      width: '100%',
-    }}>
+    <div 
+      ref={props.hoverRef}
+      style={{
+        width: '100%',
+      }}
+      onClick={(e: any) => {
+        if(props.onClick !== undefined) {
+          props.onClick(e);
+          inputRef.current?.focus();
+        }
+      }}
+    >
       <input
-        ref={props.hoverRef}
+        ref={inputRef}
         onKeyPress={props.onKeyPress ?? (() => {})}
         onFocus={(e) => !!props.disabled ? e.target.blur() : setFocused(true)}
         onBlur={() => setFocused(false)}
