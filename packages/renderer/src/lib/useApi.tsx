@@ -3,7 +3,7 @@ import { ServerConnectionContext } from '../components/ServerConnection';
 import useSessionToken from '../hooks/useSessionToken';
 import { Router, router, RouterObject } from './api';
 
-export function useApi(actions: Router | RouterObject, deps: any[]) {
+export function useApi(actions: Router | RouterObject = {}, deps: any[] = []) {
   const connection = useContext(ServerConnectionContext);
   const _router = typeof actions === 'object' ? router(actions) : actions;
   const { sessionToken } = useSessionToken();

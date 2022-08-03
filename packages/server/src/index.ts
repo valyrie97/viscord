@@ -17,6 +17,8 @@ const api = router({
   client: client,
   clients: client,
   totp: totp,
+  session: session,
+  sessions: session,
 });
 
 expose(api, 3000);
@@ -24,6 +26,7 @@ expose(api, 3000);
 // -------------
 
 import { update } from './db/migrate';
+import session from './routers/session';
 
 try {
   update();

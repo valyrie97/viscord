@@ -8,7 +8,15 @@ export const ChannelContext = createContext<{
   setChannel: () => {},
 });
 export const TransparencyContext = createContext<(transparent: boolean) => void>(() => {});
-
+export const SettingsContext = createContext<{
+  openSettings: () => void,
+  closeSettings: () => void,
+  isSettingsOpen: boolean
+}>({
+  openSettings() {},
+  closeSettings() {},
+  isSettingsOpen: false
+});
 
 export default function EphemeralState(props: {
   onTransparencyChange: (value: boolean) => void,
@@ -17,6 +25,8 @@ export default function EphemeralState(props: {
 
   const [channel, setChannel] = useState<string | null>(null);
   const [transparent, setTransparent] = useState(false);
+
+  const [settings, setSettings] = useState(true);
 
   const channelContextValue = useMemo(() => {
     return { channel, setChannel };
@@ -31,7 +41,13 @@ export default function EphemeralState(props: {
   return (
     <ChannelContext.Provider value={channelContextValue}>
       <TransparencyContext.Provider value={setTransparent}>
-        {props.children}
+        <SettingsContext.Provider value={{
+          openSettings: () => setSettings(true),
+          closeSettings: () => setSettings(false),
+          isSettingsOpen: settings,
+        }}>
+          {props.children}
+        </SettingsContext.Provider>
       </TransparencyContext.Provider>
     </ChannelContext.Provider>
   );

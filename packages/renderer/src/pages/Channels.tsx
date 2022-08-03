@@ -24,7 +24,7 @@ export default function Channels() {
 
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [unreads, setUnreads] = useState<IUnreads>({});
-  
+
   const { channel, setChannel } = useChannel()
   const { clientId } = useClientId()
 
@@ -45,20 +45,14 @@ export default function Channels() {
   }, [channels, unreads]);
 
   useEffect(() => {
-    // console.log('unreads', unreads);
-  }, [unreads]);
-
-  useEffect(() => {
     if(channels.length === 0) {
       send('channels:list');
     }
   }, [channels]);
 
   useEffect(() => {
-    // console.log(channel, channels);
     if(channels.length === 0) return;
     if(channel !== null) return;
-    // console.log('this is what setChannel is', setChannel);
     setChannel(channels[0].uid);
   }, [channel, channels]);
 
@@ -86,8 +80,10 @@ export default function Channels() {
   return (
     <div style={{
       height: '100%',
-      background: '#21222c',
-      padding: '0px 8px'
+      background: 'var(--neutral-3)',
+      padding: '0px 8px',
+      overflowY: 'auto',
+      overflowX: 'hidden',
     }}>
       <br></br>
       {channels.map(c => (

@@ -7,13 +7,14 @@
       default-src 'self' data: https://ssl.gstatic.com https://fonts.gstatic.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       media-src *;
-      img-src 'self' data: content:;
+      img-src 'self' data: content: http://tinygraphs.com;
       connect-src *;">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Vite App</title>
   </head>
   <body style=" margin: 0px; overflow: hidden;">
     <div id="app" style="width: 100vw; height: 100vh;"></div>
+    <div id="portal-root"></div>
     <script src="./src/index.tsx" type="module"></script>
   </body>
 </html>

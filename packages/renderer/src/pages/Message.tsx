@@ -30,7 +30,7 @@ export function Message({
       }}>
         <span style={{
           fontStyle: 'italic',
-          color: '#596793',
+          color: 'var(--neutral-6)',
           textAlign: 'right',
           userSelect: 'none',
           marginRight: '16px',
@@ -43,7 +43,7 @@ export function Message({
         <span style={{
         }}>
           <div style={{
-            fontWeight: 'bold',
+            fontWeight: '500',
             float: 'left',
             paddingRight: firstLineIndent,
             // marginRight: '16px',

@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useCallback, useContext, useRef } from "react"
+import { BiLogIn } from "react-icons/bi";
+import { FaUserPlus } from 'react-icons/fa';
 import ServerConnection from "../components/ServerConnection";
-import { useApi } from "../lib/useApi";
-import QR from 'qrcode';
-import useSessionToken from "../hooks/useSessionToken";
+import useHomeServer from "../contexts/PersistentState/useHomeServerNative";
+import { BigButton } from "./BigButton";
+import { SignUp } from "./SignUp";
+import { MdOutlineNavigateNext } from 'react-icons/md';
+import useHover from "../hooks/useHover";
+import { AiOutlineEdit } from "react-icons/ai";
 
 export default function NewAccount() {
 
@@ -12,7 +17,6 @@ export default function NewAccount() {
 
 
   // const inputRef = useRef<HTMLInputElement>(null);
-  // const { setHomeServer } = useContext(HomeServerContext);
   // const { setClientId } = useContext(ClientIdContext);
 
   // const setTransparent = useContext(TransparencyContext);
@@ -62,12 +66,26 @@ export default function NewAccount() {
   //   }
   // }, [data, scanning])
 
+  // const [homeServer, setHomeServer] = useState<string | null>(null);
+  // const homeServerInputRef = useRef<HTMLInputElement>(null);
+  const { setHomeServer, homeServer } = useHomeServer();
+  const [homeServerInput, setHomeServerInput] = useState<string>(homeServer ?? '');
+  const [usernameInput, setUsernameInput] = useState('');
+  const [authCodeInput, setAuthCodeInput] = useState('');
   const [returning, setReturning] = useState(true);
-  const homeServerInputRef = useRef<HTMLInputElement>(null);
-  const [homeServer, setHomeServer] = useState<string | null>(null);
   const [connection, setConnection] = useState<WebSocket | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState('');
+  const [edittingHomeServer, setEdittingHomeServer] = useState(false);
+  const [homeServerInputRef, homeServerHovered] = useHover<HTMLInputElement>();
+
+  useEffect(() => {
+    if(homeServer === null) {
+      setEdittingHomeServer(true)
+    } else {
+      setEdittingHomeServer(false)
+    }
+  }, [homeServer]);
 
   const connect = useCallback((url: string) => {
     if(connecting) return;
@@ -91,133 +109,240 @@ export default function NewAccount() {
     ws.addEventListener('error', (e) => {
       setConnectionError('Connection failed')
     });
-  }, [connecting])
+  }, [connecting]);
+
+  // return (
+  //   <div style={{
+  //     display: 'grid',
+  //     placeContent: 'center center',
+  //     height: '100%',
+  //     textAlign: 'center'
+  //   }}>
+  //     {returning ? (
+  //       <div>
+  //         <span>
+  //           Login
+  //         </span>
+  //         &nbsp;
+  //         &nbsp;
+  //         &nbsp;
+  //         <a href="#" onClick={() => setReturning(false)}>Sign up</a>
+  //       </div>
+  //     ) : (
+  //       <>
+  //         <div>
+  //           <a href="#" onClick={() => setReturning(true)}>
+  //             Login
+  //           </a>
+  //           &nbsp;
+  //           &nbsp;
+  //           &nbsp;
+  //           <span>
+  //             Sign up
+  //           </span>
+  //         </div>
+  //         <br></br>
+  //         <label>Home Server URL</label>
+  //         <input style={{textAlign: 'center'}} ref={homeServerInputRef} defaultValue="wss://macos.valnet.xyz" disabled={connection !== null || connecting}></input>
+  //         <button onClick={() => connect(homeServerInputRef.current?.value ?? '')} disabled={connection !== null || connecting}>Next</button>
+  //         {connecting ? `Connecting...` : connectionError}
+  //         <br></br>
+  //         {connection !== null && (
+  //           <ServerConnection url={homeServer ?? ''}>
+  //             <SignUp>
+  //             </SignUp>
+  //           </ServerConnection>
+  //         )}
+  //         {/* Create New Account!! <br />
+  //         Enter Home Server URL <br />
+  //         <input defaultValue="wss://dev.valnet.xyz" ref={inputRef}></input> <br />
+  //         <button onClick={go}> GO </button> <br />
+  //         <br />
+  //         or scan a QR! <br />
+  //         <button onClick={scanQr}>SCAN</button><br></br>
+  //         <pre>
+  //           {data}
+  //           {scanning ? 'SCANNING' : 'NOT SCANNING'}
+  //         </pre> */}
+  //       </>
+  //     )}
+  //   </div>
+  // );
+
+  
 
   return (
     <div style={{
-      display: 'grid',
-      placeContent: 'center center',
+      width: '100%',
       height: '100%',
-      textAlign: 'center'
+      display: 'grid',
+      placeItems: 'center center',
+      background: 'var(--neutral-3)',
     }}>
-      {returning ? (
-        <div>
-          <span>
-            Login
-          </span>
-          &nbsp;
-          &nbsp;
-          &nbsp;
-          <a href="#" onClick={() => setReturning(false)}>Sign up</a>
-        </div>
-      ) : (
-        <>
-          <div>
-            <a href="#" onClick={() => setReturning(true)}>
-              Login
-            </a>
-            &nbsp;
-            &nbsp;
-            &nbsp;
-            <span>
-              Sign up
-            </span>
+      <div style={{
+        width: '450px',
+        background: 'var(--neutral-4)',
+        boxShadow: '0px 4px 20px 0px var(--neutral-1)',
+        borderRadius: '8px',
+        transform: 'skew(-6deg, 0deg)',
+      }}>
+        <div style={{
+          transform: 'skew(6deg, 0deg)',
+          margin: '8px',
+        }}>
+          <div style={{
+            display: 'inline-block',
+            width: '50%',
+            paddingRight: '4px',
+            boxSizing: 'border-box',
+          }}>
+            <BigButton
+              icon={BiLogIn}
+              text="Login"
+              selected={returning}
+              angle={6}
+              width="100%"
+              inline={true}
+              onClick={() => setReturning(true)}
+            ></BigButton>
           </div>
-          <br></br>
-          <label>Home Server URL</label>
-          <input style={{textAlign: 'center'}} ref={homeServerInputRef} defaultValue="wss://macos.valnet.xyz" disabled={connection !== null || connecting}></input>
-          <button onClick={() => connect(homeServerInputRef.current?.value ?? '')} disabled={connection !== null || connecting}>Next</button>
-          {connecting ? `Connecting...` : connectionError}
-          <br></br>
-          {connection !== null && (
-            <ServerConnection url={homeServer ?? ''}>
-              <SignUp>
-              </SignUp>
-            </ServerConnection>
-          )}
-          {/* Create New Account!! <br />
-          Enter Home Server URL <br />
-          <input defaultValue="wss://dev.valnet.xyz" ref={inputRef}></input> <br />
-          <button onClick={go}> GO </button> <br />
-          <br />
-          or scan a QR! <br />
-          <button onClick={scanQr}>SCAN</button><br></br>
-          <pre>
-            {data}
-            {scanning ? 'SCANNING' : 'NOT SCANNING'}
-          </pre> */}
-        </>
-      )}
+          <div style={{
+            display: 'inline-block',
+            width: '50%',
+            paddingLeft: '4px',
+            boxSizing: 'border-box',
+          }}>
+            <BigButton
+              icon={FaUserPlus}
+              text="Sign up"
+              selected={!returning}
+              angle={6}
+              width="100%"
+              inline={true}
+              onClick={() => setReturning(false)}
+            ></BigButton>
+          </div>
+        </div>
+        <Label>Home Server</Label>
+        <div style={{
+          transform: 'skew(6deg, 0deg)',
+          margin: '8px',
+        }}>
+          <AiOutlineEdit
+            style={{
+              display: homeServerHovered ? 'initial' : 'none',
+              float: 'right',
+              position: 'absolute',
+              top: '8px',
+              right: '12px',
+              zIndex: '1'
+            }}
+            size={24}
+          ></AiOutlineEdit>
+          <Input
+            hoverRef={homeServerInputRef}
+            disabled={!edittingHomeServer}
+            value={homeServerInput}
+            setValue={setHomeServerInput}
+            onKeyPress={(e: any) => e.code === 'Enter' && (setHomeServer(homeServerInput))}
+          ></Input>
+        </div>
+        <Label>Username</Label>
+        <div style={{
+          transform: 'skew(6deg, 0deg)',
+          margin: '8px',
+        }}>
+          <Input
+            disabled={edittingHomeServer}
+            value={usernameInput}
+            setValue={setUsernameInput}
+          ></Input>
+        </div>
+        <Label>Auth Code</Label>
+        <div style={{
+          transform: 'skew(6deg, 0deg)',
+          margin: '8px',
+        }}>
+          <Input
+            disabled={edittingHomeServer}
+            value={authCodeInput}
+            setValue={setAuthCodeInput}
+          ></Input>
+        </div>
+        <div style={{
+          transform: 'skew(6deg, 0deg)',
+          margin: '8px',
+          textAlign: 'right'
+        }}>
+          <BigButton
+            icon={MdOutlineNavigateNext}
+            text="Next"
+            selected={false}
+            angle={6}
+            width="auto"
+            inline={true}
+            onClick={() => {}}
+          ></BigButton>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
 
-const SignUp = (props: any) => {
+function Label(props: any) {
+  return <label style={{
+    paddingLeft: '24px',
+    fontWeight: 700,
+    fontSize: '12px',
+    textTransform: 'uppercase',
+  }}>{props.children}</label>
+}
 
-  const usernameRef = useRef<HTMLInputElement>(null);
-  const displayNameRef = useRef<HTMLInputElement>(null);
-  const totpRef = useRef<HTMLInputElement>(null);
-  const [clientId, setClientId] = useState<string | null>(null);
-  // const [totpToken, setTotpToken] = useState<string | null>(null);
-  const [qr, setQr] = useState<string | null>(null);
-  const { setSessionToken } = useSessionToken();
+interface InputProps {
+  value: string;
+  setValue: (s: string) => void;
+  default?: string;
+  onKeyPress?: (e: any) => void;
+  disabled?: boolean;
+  hoverRef?: React.LegacyRef<HTMLInputElement>
+}
 
-  const { send } = useApi({
-    'client:new'(data: any) {
-      setClientId(data);
-    },
-    async 'totp:propose'(data: any) {
-      setQr(await QR.toDataURL(
-        'otpauth://totp/' +
-        (usernameRef.current?.value ?? '') +
-        '?secret=' +
-        data +
-        '&issuer=valnet-corner'
-      ));
-    },
-    'totp:confirm'(data: any) {
-      setSessionToken(data.token);
-      console.log(data);
-    }
-  }, [setSessionToken]);
+const Input = (props: InputProps) => {
 
-  const createAccount = useCallback(() => {
-    send('client:new', {
-      username: usernameRef.current?.value,
-      displayName: displayNameRef.current?.value,
-    })
-  }, []);
-
-  useEffect(() => {
-    if(clientId === null) return;
-    send('totp:propose', clientId);
-  }, [clientId]);
-
-  const changeTotp = useCallback(() => {
-    const value = totpRef.current?.value ?? '';
-    if(!(/[0-9]{6}/.test(value))) return;
-    send('totp:confirm', {
-      clientId,
-      code: value
-    })
-  }, [clientId]);
+  const _default = props.default ?? '';
+  const [focused, setFocused] = useState(false);
+  const disabled = props.disabled ?? false;
 
   return (
-    <>
-      <label>Username</label>
-      <input defaultValue={'Test' + Math.floor(Math.random() * 1000)} disabled={clientId !== null} ref={usernameRef}></input>
-      <label>Display Name</label>
-      <input defaultValue="Val" disabled={clientId !== null} ref={displayNameRef}></input>
-      <button disabled={clientId !== null} onClick={createAccount}>Next</button>
-      {clientId && (
-        <>
-          <br></br>
-          <img src={qr ?? ''}></img>
-          <br></br>
-          <label>TOTP Code</label>
-          <input onChange={changeTotp} ref={totpRef}></input>
-        </>
-      )}
-    </>
+    <div style={{
+      width: '100%',
+    }}>
+      <input
+        ref={props.hoverRef}
+        onKeyPress={props.onKeyPress ?? (() => {})}
+        onFocus={(e) => !!props.disabled ? e.target.blur() : setFocused(true)}
+        onBlur={() => setFocused(false)}
+        disabled={disabled}
+        style={{
+          height: '40px',
+          width: '100%',
+          padding: '0px',
+          margin: '0px',
+          border: focused ? '1px solid var(--neutral-7)' : '1px solid rgba(0, 0, 0, 0)',
+          transform: 'skew(-6deg, 0deg)',
+          borderRadius: '8px',
+          outline: 'none',
+          fontSize: '20px',
+          paddingLeft: '12px',
+          paddingRight: '12px',
+          boxSizing: 'border-box',
+          background: disabled ? 'var(--neutral-3)' : focused ? 'var(--neutral-2)' : 'var(--neutral-1)',
+          color: disabled ? 'var(--neutral-6)' : 'var(--neutral-8)'
+        }}
+        spellCheck="false"
+        onChange={(e) => props.setValue(e.target.value)}
+        value={props.value}
+      ></input>
+    </div>
   )
 }

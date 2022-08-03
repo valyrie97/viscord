@@ -22,12 +22,12 @@ export default function Channel(props: ChannelProps) {
         gridTemplateColumns: 'min-content 1fr',
         color: selected ? 'cyan' : 'inherit',
         cursor: 'pointer',
-        background: selected ? 'var(--neutral-4)' :
-                       hover ? 'var(--neutral-3)' :
+        background: selected ? 'var(--neutral-5)' :
+                       hover ? 'var(--neutral-4)' :
                                'inherit',
         borderRadius: '8px',
-        // placeItems: 'left center',
-        // border: '1px solid white'
+        transform:'skew(-20deg, 0deg)',
+        transition: 'background 300ms, color 300ms',
       }}
       onClick={() => {
         setChannel(uid);
@@ -35,17 +35,21 @@ export default function Channel(props: ChannelProps) {
       ref={ref}
     >
       <CgHashtag color={
-          selected ? 'var(--neutral-9)' :
-             hover ? 'var(--neutral-7)' :
-                     'var(--neutral-7)'
-        } size={24} style={{
+        selected ? 'var(--neutral-9)' :
+            hover ? 'var(--neutral-7)' :
+                    'var(--neutral-7)'
+      } size={24} style={{
         margin: '4px',
+        transition: 'background 300ms, color 300ms',
+        transform:'skew(-5deg, 0deg)',
       }}></CgHashtag>
       <div style={{
         lineHeight: '32px',
         color: selected ? 'var(--neutral-9)' :
                   hover ? 'var(--neutral-9)' :
-                          'var(--neutral-7)'
+                          'var(--neutral-7)',
+        transform:'skew(20deg, 0deg)',
+        transition: 'background 300ms, color 300ms',
       }}>
         {name.toLowerCase().replaceAll(' ', '-').trim()}
       </div>

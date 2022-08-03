@@ -1,89 +1,116 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import useMediaQuery from '../lib/useMediaQueries';
+import useHomeServer from "../hooks/useHomeServer";
+import Channels from "../pages/Channels";
+import pfp from '../../assets/pfp.jpg';
+import { IoMdSettings } from 'react-icons/io';
+import useHover from "../hooks/useHover";
+import { useContext } from "react";
+import { SettingsContext } from "../contexts/EphemeralState/EphemeralState";
+
+export default function Sidebar() {
 
 
 
-export default function Sidebar(props: {
-  threshold: number,
-  sidebar: number,
-  children: any[]
-}) {
-  const bigScreen = useMediaQuery('(min-width:' + props.threshold + 'px)');
-  const [screenRef, setScreenRef] = useState<HTMLDivElement | null>(null);
-  const [startDrag, setStartDrag] = useState(0);
-  const [currentDrag, setCurrentDrag] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const [opened, setOpened] = useState(false);
+  return (
+    <div style={{
+      height: '100%',
+      display: 'grid',
+      gridTemplateRows: 'min-content 1fr min-content'
+    }}>
+      <TopSidebar></TopSidebar>
+      <Channels></Channels>
+      <MiniProfile></MiniProfile>
+    </div>
+  )
+}
 
-  const difference = opened ?
-    Math.min(currentDrag - startDrag, 0) :
-    Math.max(currentDrag - startDrag, 0);
+function TopSidebar() {
 
-  const pointerDown = useCallback((e: any) => {
-    setDragging(true);
-    setStartDrag(e.touches[0].clientX);
-    setCurrentDrag(e.touches[0].clientX);
-  }, [dragging, startDrag, currentDrag]);
+  const { homeServer } = useHomeServer();
 
-  const pointerUp = useCallback(() => {
-    setDragging(false);
-    if(difference > 0) {
-      setOpened(true);
-    } else if (difference < 0) {
-      setOpened(false);
-    }
-  }, [dragging, currentDrag, startDrag, opened]);
+  return (
+    <div style={{
+      lineHeight: '48px',
+      paddingLeft: '16px',
+      fontSize: '16px',
+      background: 'var(--neutral-3)',
+      boxShadow: 'black 0px 0px 3px 0px',
+      zIndex: '100',
+      fontWeight: '500',
+    }}>
+      {homeServer && new URL(homeServer).hostname.toLocaleLowerCase()}
+    </div>
+  )
+}
 
-  const pointerMove = useCallback((e: any) => {
-    setCurrentDrag(e.touches[0].clientX);
-  }, [dragging, currentDrag]);
+function MiniProfile() {
+  return (
+    <div style={{
+      fontSize: '16px',
+      background: 'var(--neutral-2)',
+      // boxShadow: 'black 0px 0px 3px 0px',
+      zIndex: '100',
+      fontWeight: '500',
+      display: 'grid',
+      gridTemplateColumns: 'min-content 1fr min-content'
+    }}>
+      <ProfilePicture></ProfilePicture>
+      <div style={{
+        display: 'grid',
+        placeItems: 'center left',
+      }}>
+        <div>
+          <div style={{
+            fontWeight: '400',
+            fontSize: '15px',
+          }}>Valerie</div>
+          <div style={{
+            fontWeight: '300',
+            fontSize: '13px',
+          }}>dev.valnet.xyz</div>
+        </div>
+      </div>
+      <div style={{
+        whiteSpace: 'nowrap',
+        display: 'grid',
+        gridAutoFlow: 'column',
+        placeItems: 'center right',
+        paddingRight: '8px',
+      }}>
+        <SettingsButton></SettingsButton>
+        {/* <SettingsButton></SettingsButton>
+        <SettingsButton></SettingsButton> */}
+      </div>
+    </div>
+  )
+}
 
-  useEffect(() => {
-    if(screenRef === null) return;
-    screenRef.addEventListener('touchstart', pointerDown, { passive: true });
-    screenRef.addEventListener('touchend', pointerUp, { passive: true });
-    screenRef.addEventListener('touchmove', pointerMove, { passive: true });
-    // screenRef.addEventListener('pointercancel', pointerUp);
-    return () => {
-      screenRef.removeEventListener('touchstart', pointerDown);
-      screenRef.removeEventListener('touchend', pointerUp);
-      screenRef.removeEventListener('touchmove', pointerMove);
-      // screenRef.removeEventListener('pointercancel', pointerUp);
-    };
-  }, [screenRef, pointerUp, pointerDown]);
+function SettingsButton() {
+  const [ref, hover] = useHover<HTMLDivElement>();
+  const { openSettings } = useContext(SettingsContext);
 
-  return <div ref={setScreenRef} style={{
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-    userSelect: 'none',
-    // overflow: 'hidden',
-  }}>
-    <div
-      style={{
-        // background: 'red',
-        width: bigScreen ? (props.sidebar + 'px') : '100%',
-        height: '100%',
-        display: 'inline-block',
-        position: 'absolute',
-        top: '0px',
-        left: bigScreen ? '0px' : !dragging ? (opened ? '0px' : '-100%') : `calc(${difference}px ${opened ? '' : '- 100%'})`,
-        zIndex: '1',
-        transition: dragging ? 'none' : 'left 300ms linear, width 300ms linear',
-      }}
-    >{props.children[0]}</div>
-    <div
-      style={{
-        // background: 'green',
-        width: bigScreen ? 'calc(100% - ' + props.sidebar + 'px)' : '100%',
-        height: '100%',
-        display: 'inline-block',
-        position: 'absolute',
-        top: '0px',
-        left: bigScreen ? (props.sidebar + 'px') : '0px',
-        zIndex: '0',
-        transition: 'left 300ms linear, width 300ms linear',
-      }}
-    >{props.children[1]}</div>
-  </div>;
+  return <div ref={ref} className="settings" style={{
+    display: 'flex',
+    padding: '8px',
+    background: hover ?
+            'var(--neutral-4)' :
+            'initial',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  }} onClick={openSettings}>
+    <IoMdSettings size="16"></IoMdSettings>
+  </div>
+}
+
+function ProfilePicture() {
+  const name = 'Val';
+  return <div style={{
+    backgroundImage: `url(${pfp})`,
+    width: '40px',
+    height: '40px',
+    margin: '12px',
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    borderRadius: '50%',
+  }}></div>
 }

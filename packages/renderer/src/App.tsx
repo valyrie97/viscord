@@ -1,7 +1,7 @@
 import { createContext, useCallback, useEffect, useState, useMemo } from 'react';
 import Channels from './pages/Channels';
 import Chat from './pages/Chat';
-import Sidebar from './components/Sidebar';
+import Sidebar from './components/TwoPanel';
 import NewAccount from './pages/NewAccount';
 import ServerConnection from './components/ServerConnection';
 import EphemeralState from './contexts/EphemeralState/EphemeralState';
@@ -23,7 +23,7 @@ export default function App() {
     <>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin='' />
-      <link href={"https://fonts.googleapis.com/css2?family=Fira+Sans&family=Josefin+Sans&family=Lato&family=Radio+Canada&family=Readex+Pro&family=Red+Hat+Text&family=Rubik&family=Signika&family=Telex&display=swap"} rel="stylesheet" />
+      <link href={"https://fonts.googleapis.com/css2?family=Fira+Sans&family=Josefin+Sans&family=Lato&family=Radio+Canada&family=Readex+Pro&family=Red+Hat+Text:wght@200;300;400;500;600;700;800;900&family=Rubik&family=Signika&family=Telex&display=swap"} rel="stylesheet" />
       <style>{`
         html {
           --background: #282a36;
@@ -53,7 +53,7 @@ export default function App() {
         }
       `}</style>
       <div style={{
-        background: transparent ? 'rgba(0, 0, 0, 0)' : 'var(--background)',
+        background: transparent ? 'rgba(0, 0, 0, 0)' : 'var(--neutral-3)',
         color: transparent ? 'black' : 'var(--foreground)',
         fontSize: '16px',
         fontFamily: "'Red Hat Text', sans-serif",

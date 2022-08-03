@@ -6,8 +6,8 @@ import _get from '../db/snippets/session/get.sql'
 import query from "../db/query";
 
 export default router({
-  async 'invalidate'(token: string) {
-    await query(invalidate, token);
+  async 'invalidate'(data: any) {
+    await query(invalidate, data.$sessionToken);
     return reply({
       err: null
     })
