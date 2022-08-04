@@ -5,10 +5,12 @@ import { FaUserPlus } from 'react-icons/fa';
 import ServerConnection from "../components/ServerConnection";
 import useHomeServer from "../contexts/PersistentState/useHomeServerNative";
 import { BigButton } from "./BigButton";
-import { SignUp } from "./SignUp";
 import { MdOutlineNavigateNext } from 'react-icons/md';
 import useHover from "../hooks/useHover";
 import { AiOutlineEdit } from "react-icons/ai";
+import { useApi } from "../lib/useApi";
+import useSessionToken from "../hooks/useSessionToken";
+import useClientId from "../hooks/useClientId";
 
 export default function NewAccount() {
 
@@ -70,11 +72,8 @@ export default function NewAccount() {
   // const homeServerInputRef = useRef<HTMLInputElement>(null);
   const { setHomeServer, homeServer } = useHomeServer();
   const [homeServerInput, setHomeServerInput] = useState<string>(homeServer ?? '');
-  const [usernameInput, setUsernameInput] = useState('');
-  const [authCodeInput, setAuthCodeInput] = useState('');
   const [returning, setReturning] = useState(true);
-  const [connection, setConnection] = useState<WebSocket | null>(null);
-  const [connecting, setConnecting] = useState(false);
+  // const [connection, setConnection] = useState<WebSocket | null>(null);
   const [connectionError, setConnectionError] = useState('');
   const [edittingHomeServer, setEdittingHomeServer] = useState(false);
   const [homeServerInputRef, homeServerHovered] = useHover<HTMLInputElement>();
@@ -88,29 +87,43 @@ export default function NewAccount() {
     }
   }, [homeServer]);
 
-  const connect = useCallback((url: string) => {
+  const [connecting, setConnecting] = useState(false);
+  const [connectionSucceeded, setConnectionSucceeded] = useState(false);
+
+  const connect = useCallback(() => {
     if(connecting) return;
-    setHomeServer(url);
+    const url = homeServerInput;
     setConnecting(true);
-    
-    const ws = new WebSocket(url);
+    try {
+      const ws = new WebSocket(url);
+  
+      ws.addEventListener('open', () => {
+        setConnecting(false);
+        setConnectionSucceeded(true);
+        setHomeServer(homeServerInput);
+        setEdittingHomeServer(false);
+      });
+  
+      ws.addEventListener('error', (e) => {
+        setConnecting(false);
+        setConnectionSucceeded(false);
+        setConnectionError('Connection failed')
+      });
+    } catch (e) {
+      setConnecting(false)
+      setConnectionSucceeded(false);
+      setConnectionError('Connection failed in catch');
+    }
+  }, [connecting, homeServerInput]);
 
-    ws.addEventListener('open', () => {
-      setConnecting(false);
-      setConnection(ws);
-      setConnectionError('');
-    });
-
-    ws.addEventListener('close', (e) => {
-      setConnecting(false);
-      setConnection(null);
-      console.log(e)
-    });
-
-    ws.addEventListener('error', (e) => {
-      setConnectionError('Connection failed')
-    });
-  }, [connecting]);
+  const next = useCallback(() => {
+    // debugger;
+    if(edittingHomeServer) {
+      connect()
+    } else {
+      console.log('do login');
+    }
+  }, [homeServer, homeServerInput, edittingHomeServer, connect])
 
   // return (
   //   <div style={{
@@ -181,7 +194,8 @@ export default function NewAccount() {
       background: 'var(--neutral-3)',
     }}>
       <div style={{
-        width: '450px',
+        width: 'calc(100% - 40px)',
+        maxWidth: '450px',
         background: 'var(--neutral-4)',
         boxShadow: '0px 4px 20px 0px var(--neutral-1)',
         borderRadius: '8px',
@@ -254,54 +268,170 @@ export default function NewAccount() {
             onClick={(e) => {
               setEdittingHomeServer(true);
             }}
-            onKeyPress={(e: any) => {
-              if(e.code === 'Enter') {
-                if(homeServer === homeServerInput)
-                  return setEdittingHomeServer(false);
-                setHomeServer(homeServerInput)
-              }
-            }}
+            onKeyPress={(e: any) => e.code === 'Enter' && next()}
           ></Input>
+          <div style={{
+            paddingLeft: '16px'
+          }}>
+            {(connecting) ? (
+              <div style={{ color: 'var(--neutral-7)'}}>
+                Connecting...
+              </div>
+            ) : (
+              (!connectionSucceeded) && (
+                <div style={{ color: 'var(--red)'}}>
+                  {connectionError}
+                </div>
+              )
+            )}
+          </div>
         </div>
-        <Label>Username</Label>
-        <div style={{
-          transform: 'skew(6deg, 0deg)',
-          margin: '8px',
-        }}>
-          <Input
-            disabled={edittingHomeServer}
-            value={usernameInput}
-            setValue={setUsernameInput}
-          ></Input>
-        </div>
-        <Label>Auth Code</Label>
-        <div style={{
-          transform: 'skew(6deg, 0deg)',
-          margin: '8px',
-        }}>
-          <Input
-            disabled={edittingHomeServer}
-            value={authCodeInput}
-            setValue={setAuthCodeInput}
-          ></Input>
-        </div>
-        <div style={{
-          transform: 'skew(6deg, 0deg)',
-          margin: '8px',
-          textAlign: 'right'
-        }}>
-          <BigButton
-            icon={MdOutlineNavigateNext}
-            text="Next"
-            selected={false}
-            angle={6}
-            width="auto"
-            inline={true}
-            onClick={() => {}}
-          ></BigButton>
-        </div>
+        <ServerConnection url={homeServer ?? ''}>
+          {(returning) ? (
+            <Login disabled={edittingHomeServer}></Login>
+          ) : (
+            <SignUp disabled={edittingHomeServer}></SignUp>
+          )}
+        </ServerConnection>
+        {edittingHomeServer && <Next onClick={next}></Next>}
       </div>
     </div>
+  )
+}
+
+function Next(props: {
+  onClick?: (e: any) => void
+}) {
+  return (
+    <div style={{
+      transform: 'skew(6deg, 0deg)',
+      margin: '8px',
+      textAlign: 'right'
+    }}>
+      <BigButton
+        icon={MdOutlineNavigateNext}
+        text="Next"
+        selected={false}
+        angle={6}
+        width="auto"
+        inline={true}
+        onClick={props.onClick}
+      ></BigButton>
+    </div>
+  )
+}
+
+interface LoginProps {
+  disabled?: boolean
+}
+
+function Login(props: LoginProps) {
+  const [usernameInput, setUsernameInput] = useState('');
+  const [authCodeInput, setAuthCodeInput] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const { setSessionToken } = useSessionToken();
+  const { setClientId } = useClientId();
+
+  const { send } = useApi({
+    'session:login'({ err, sessionToken, clientId }) {
+      if(err) {
+        setSuccess(null);
+        setError(err);
+        return;
+      }
+      setError(null);
+      setSuccess('Success!');
+      setTimeout(() => {
+        setClientId(clientId);
+        setSessionToken(sessionToken);
+      }, 1000)
+    }
+  })
+
+  const next = () => {
+    send('session:login', {
+      username: usernameInput,
+      totp: authCodeInput
+    })
+  }
+
+  return (
+    <>
+      <Label>Username</Label>
+      <div style={{
+        transform: 'skew(6deg, 0deg)',
+        margin: '8px',
+      }}>
+        <Input
+          disabled={props.disabled}
+          value={usernameInput}
+          setValue={setUsernameInput}
+          focusOnEenable={true}
+        ></Input>
+      </div>
+      <Label>Auth Code</Label>
+      <div style={{
+        transform: 'skew(6deg, 0deg)',
+        margin: '8px',
+      }}>
+        <Input
+          disabled={props.disabled}
+          value={authCodeInput}
+          setValue={setAuthCodeInput}
+        ></Input>
+      </div>
+      {error && <div style={{ color: 'var(--red)', textAlign: 'center' }}>
+        {error}
+      </div>}
+      {success && <div style={{ color: 'var(--green)', textAlign: 'center' }}>
+        {success}
+      </div>}
+      {!props.disabled && <Next onClick={next}></Next>}
+    </>
+  )
+}
+
+interface SignUpProps {
+  disabled?: boolean
+}
+
+function SignUp(props: SignUpProps) {
+  const [usernameInput, setUsernameInput] = useState('');
+  const [authCodeInput, setAuthCodeInput] = useState('');
+
+  const next = () => {
+
+  }
+
+  return (
+    <>
+      <Label>Username</Label>
+      <div style={{
+        transform: 'skew(6deg, 0deg)',
+        margin: '8px',
+      }}>
+        <Input
+          disabled={props.disabled}
+          value={usernameInput}
+          setValue={setUsernameInput}
+          focusOnEenable={true}
+        ></Input>
+      </div>
+      <Label>Auth Code</Label>
+      <div style={{
+        transform: 'skew(6deg, 0deg)',
+        margin: '8px',
+      }}>
+        <Input
+          disabled={props.disabled}
+          value={authCodeInput}
+          setValue={setAuthCodeInput}
+        ></Input>
+      </div>
+      {!props.disabled && <Next onClick={next}></Next>}
+    </>
   )
 }
 

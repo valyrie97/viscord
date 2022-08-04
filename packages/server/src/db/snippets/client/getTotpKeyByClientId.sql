@@ -1,0 +1,1 @@
+SELECT totp FROM clients WHERE uid=?;

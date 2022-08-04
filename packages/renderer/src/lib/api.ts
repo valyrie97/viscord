@@ -8,7 +8,6 @@ export function connectApi(url: string) {
   const connect = async () => {
     try {
       connectionAttempts ++;
-      // console.log('connecting to', url);
       socket = new WebSocket(url);
     } catch (e) {
       if(destroy) return;
@@ -25,6 +24,7 @@ export function connectApi(url: string) {
     socket.addEventListener('open', () => {
       if(socket === null) return;
       connectionAttempts = 0;
+      console.log('connected to', url);
       // socket.send('Hello Server!');
     });
   

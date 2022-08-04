@@ -19,7 +19,7 @@ export function expose(router: Function, port: number) {
         }
         const {action, data} = message;
         try {
-          if(typeof data === 'object' && 'sessionToken' in data) {
+          if(typeof data === 'object' && 'sessionToken' in data && data.sessionToken !== null) {
             const auth = await validateSessionToken(data.sessionToken);
             data.$sessionToken = data.sessionToken;
             delete data['sessionToken'];
