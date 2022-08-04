@@ -9,16 +9,16 @@ import { generateTotpKey } from "../lib/generateTotpKey";
 const proposals: any = {}
 
 export default router({
-  'propose'(clientId: string) {
+  'propose'(data: any) {
+    const { clientId } = data;
+    if(!clientId) return;
     if(clientId in proposals) return reply(proposals[clientId]);
     const key = generateTotpKey();
     proposals[clientId] = key;
-    console.log(clientId, proposals)
     setTimeout(() => {
       delete proposals[clientId];
     }, 5 * 60 * 1000);
-    console.log('created totp proposal');
-    return reply(key)
+    return reply({ key });
   },
   async 'confirm'(data: any) {
     const { clientId, code } = data;
@@ -34,8 +34,9 @@ export default router({
       err: 'unknown database error, contact server admin.'
     });
 
+    delete proposals[clientId];
     return reply({
-      token: await generateSessionToken(clientId),
+      sessionToken: await generateSessionToken(clientId),
       err: null
     });
   }

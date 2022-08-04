@@ -14,7 +14,9 @@ export default router({
       data.username,
     );
     if(response === null) return;
-    return reply(response[0][0].uid);
+    return reply({
+      clientId: response[0][0].uid
+    });
   },
   async 'get'(data: any) {
     const response = await query(_get, data.clientId);

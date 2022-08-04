@@ -26,7 +26,7 @@ export default function EphemeralState(props: {
   const [channel, setChannel] = useState<string | null>(null);
   const [transparent, setTransparent] = useState(false);
 
-  const [settings, setSettings] = useState(true);
+  const [settings, setSettings] = useState(false);
 
   const channelContextValue = useMemo(() => {
     return { channel, setChannel };

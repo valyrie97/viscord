@@ -11,6 +11,7 @@ import { AiOutlineEdit } from "react-icons/ai";
 import { useApi } from "../lib/useApi";
 import useSessionToken from "../hooks/useSessionToken";
 import useClientId from "../hooks/useClientId";
+import QR from 'qrcode';
 
 export default function NewAccount() {
 
@@ -399,37 +400,119 @@ interface SignUpProps {
 
 function SignUp(props: SignUpProps) {
   const [usernameInput, setUsernameInput] = useState('');
+  const [displayNameInput, setDisplayNameInput] = useState('');
   const [authCodeInput, setAuthCodeInput] = useState('');
+  const [tempClientId, setTempClientId] = useState<string | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
 
-  const next = () => {
+  const { setClientId } = useClientId();
+  const { setSessionToken } = useSessionToken();
 
-  }
+  useEffect(() => {
+    send('totp:propose', {
+      clientId: tempClientId
+    })
+  }, [tempClientId])
+
+  useEffect(() => {
+    setDisplayNameInput(usernameInput);
+  }, [usernameInput])
+
+  const { send } = useApi({
+    'client:new'({clientId}) {
+      setTempClientId(clientId)
+    },
+    async 'totp:propose'(data: any) {
+      const { key } = data;
+      const totpUrl = 
+        'otpauth://totp/' +
+        (usernameInput ?? '') +
+        '?secret=' +
+        key +
+        '&issuer=xyz-valnet-corner';
+      console.log(totpUrl);
+      setQr(await QR.toDataURL(totpUrl));
+    },
+    'totp:confirm'(data: any) {
+      console.log(data);
+      const { sessionToken } = data;
+      setClientId(tempClientId);
+      setSessionToken(sessionToken);
+      console.log(sessionToken, tempClientId);
+    }
+  }, [usernameInput, tempClientId]);
+
+  
+
+  const next = useCallback(() => {
+    if(!tempClientId) {
+      send('client:new', {
+        displayName: displayNameInput,
+        username: usernameInput
+      })
+    } else {
+      send('totp:confirm', {
+        clientId: tempClientId,
+        code: authCodeInput
+      })
+    }
+  }, [tempClientId, displayNameInput, usernameInput, authCodeInput]);
 
   return (
     <>
-      <Label>Username</Label>
-      <div style={{
-        transform: 'skew(6deg, 0deg)',
-        margin: '8px',
-      }}>
-        <Input
-          disabled={props.disabled}
-          value={usernameInput}
-          setValue={setUsernameInput}
-          focusOnEenable={true}
-        ></Input>
-      </div>
-      <Label>Auth Code</Label>
-      <div style={{
-        transform: 'skew(6deg, 0deg)',
-        margin: '8px',
-      }}>
-        <Input
-          disabled={props.disabled}
-          value={authCodeInput}
-          setValue={setAuthCodeInput}
-        ></Input>
-      </div>
+      {!tempClientId ? (
+        <>
+          <Label>Username</Label>
+          <div style={{
+            transform: 'skew(6deg, 0deg)',
+            margin: '8px',
+          }}>
+            <Input
+              disabled={props.disabled}
+              value={usernameInput}
+              setValue={setUsernameInput}
+              focusOnEenable={true}
+            ></Input>
+          </div>
+          <Label>Display Name</Label>
+          <div style={{
+            transform: 'skew(6deg, 0deg)',
+            margin: '8px',
+          }}>
+            <Input
+              disabled={props.disabled}
+              value={displayNameInput}
+              setValue={setDisplayNameInput}
+            ></Input>
+          </div>
+        </>
+      ) : (
+        <>
+          {qr && (
+            <div style={{
+              textAlign: 'center',
+              transform: 'skew(6deg, 0deg)',
+            }}>
+              <img
+                src={qr}
+              ></img>
+              <br></br>
+            </div>
+          )}
+          <Label>Auth Code</Label>
+          <div style={{
+            transform: 'skew(6deg, 0deg)',
+            margin: '8px',
+          }}>
+            <Input
+              disabled={props.disabled}
+              value={authCodeInput}
+              setValue={setAuthCodeInput}
+              focusOnEenable={true}
+            ></Input>
+          </div>
+        </>
+      )}
       {!props.disabled && <Next onClick={next}></Next>}
     </>
   )

@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import ServerConnection from "./components/ServerConnection";
 import Sidebar from "./components/Sidebar";
 import TwoPanel from "./components/TwoPanel";
@@ -21,12 +21,16 @@ export default function Router(props: RouterProps) {
   const { clientId } = useClientId();
   const { sessionToken } = useSessionToken();
   const { homeServer } = useHomeServer();
-  const { isSettingsOpen } = useContext(SettingsContext);
+  const { isSettingsOpen, closeSettings } = useContext(SettingsContext);
 
   const configured =
     homeServer !== null &&
     clientId !== null &&
     sessionToken !== null;
+
+  useEffect(() => {
+    if(!configured) closeSettings();
+  }, [configured])
 
   return (
     configured ? (
