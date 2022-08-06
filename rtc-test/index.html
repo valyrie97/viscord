@@ -86,7 +86,7 @@
             }
           },
           noiseSuppression: false,
-          video: {
+          video: eVideoOptions.value === 'none' ? false : {
             deviceId: {
               exact: eVideoOptions.value
             }
@@ -107,9 +107,18 @@
           call.peerConnection.getSenders()
             .filter(sender => sender.track.kind === 'audio')[0]
             .replaceTrack(audioTrack);
-          call.peerConnection.getSenders()
-            .filter(sender => sender.track.kind === 'video')[0]
-            .replaceTrack(videoTrack);
+
+          const currentVideoTrack = call.peerConnection.getSenders()
+            .filter(sender => sender.track.kind === 'video')[0];
+
+          console.log(videoTrack, currentVideoTrack);
+
+          if(videoTrack !== undefined && currentVideoTrack === undefined) {
+            call.peerConnection.addTrack(videoTrack);
+          } else {
+            currentVideoTrack.replaceTrack(videoTrack);
+          }
+
         }
       }
 
@@ -134,6 +143,13 @@
           elem.value = device.deviceId;
           eAudioOptions.appendChild(elem);
         }
+
+        eVideoOptions.appendChild((function () {
+          const elem = document.createElement('option');
+          elem.innerText = "None";
+          elem.value = "none";
+          return elem;
+        })());
 
         for(const device of devices.filter(v => v.kind === 'videoinput')) {
           const elem = document.createElement('option');
