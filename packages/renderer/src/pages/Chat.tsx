@@ -113,7 +113,7 @@ export default () => {
       }}>
         <div
           ref={textBoxRef}
-          onKeyDown={keyDown}
+          onKeyPress={keyDown}
           className="input"
           role="textbox"
           contentEditable

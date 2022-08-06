@@ -1,0 +1,270 @@
+<html>
+  <head>
+    <script src="https://unpkg.com/peerjs@1.4.5/dist/peerjs.min.js"></script>
+    <style>
+      html {
+        font-family: sans-serif;
+      }
+      #tracks {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-auto-flow: column;
+      }
+    </style>
+  </head>
+  <body>
+    <fieldset>
+      <legend>Peer Connection</legend>
+      <div>Peer ID: <span id="pid"></span></div>
+      <div id="status"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Dial Out</legend>
+      <label>Peer ID:</label>
+      <input type="text" id="out_pid" />
+      <br />
+      <button disabled type="submit" id="out_btn">CALL</button>
+      <span id="out_status">Inactive</span>
+    </fieldset>
+    <fieldset>
+      <legend>Dial In</legend>
+      <div id="in_status"></div>
+      <button disabled type="submit" id="answer_btn">ANSWER</button>
+    </fieldset>
+    <fieldset>
+      <legend>Call</legend>
+      <div id="call_status"></div>
+
+
+      <label>Audio</label>
+      <select id="in_audio">
+      </select>
+      <br />
+      
+      <label>Video</label>
+      <select id="in_video">
+      </select>
+      <br />
+      
+    </fieldset>
+
+    <div id="tracks"></div>
+
+    <script>
+      const eStatus = document.getElementById('status');
+      const ePid = document.getElementById('pid');
+      const eCallPid = document.getElementById('out_pid');
+      const eCallBtn = document.getElementById('out_btn');
+      const eIncommingData = document.getElementById('incomming_data');
+      const eIncommingStatus = document.getElementById('in_status');
+      const eAnswerBtn = document.getElementById('answer_btn');
+      const eOutgoingStatus = document.getElementById('out_status');
+      const eTracks = document.getElementById('tracks');
+      const eAudioOptions = document.getElementById('in_audio');
+      const eVideoOptions = document.getElementById('in_video');
+      const eEndBtn = document.getElementById('end');
+
+      let connected = false;
+      let localMediaStream = null;
+      let remoteMediaStream = null;
+      let incommingCall = null;
+
+      function closeLocalMediaStream() {
+        for(const track of localMediaStream.getTracks()) {
+          track.stop();
+        }
+      }
+
+      async function createLocalMediaStream() {
+        if(localMediaStream !== null) {
+          closeLocalMediaStream();
+        }
+        localMediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            deviceId: {
+              exact: eAudioOptions.value
+            }
+          },
+          noiseSuppression: false,
+          video: {
+            deviceId: {
+              exact: eVideoOptions.value
+            }
+          }
+        });
+      }
+
+      console.dir(eAudioOptions);
+
+      async function updateOutgoing() {
+        await createLocalMediaStream();
+        for(const peerId in connections) {
+          const { call } = connections[peerId];
+          const audioTrack = localMediaStream.getTracks()
+            .filter(track => track.kind === 'audio')[0];
+          const videoTrack = localMediaStream.getTracks()
+            .filter(track => track.kind === 'video')[0];
+          call.peerConnection.getSenders()
+            .filter(sender => sender.track.kind === 'audio')[0]
+            .replaceTrack(audioTrack);
+          call.peerConnection.getSenders()
+            .filter(sender => sender.track.kind === 'video')[0]
+            .replaceTrack(videoTrack);
+        }
+      }
+
+      eAudioOptions.onchange = updateOutgoing;
+      eVideoOptions.onchange = updateOutgoing;
+
+      // get permissions and enumerate devices
+      (async function() {
+        const scanDevices = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true
+        });
+        for(const track of scanDevices.getTracks()) {
+          track.stop();
+        }
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        console.log(devices);
+        
+        for(const device of devices.filter(v => v.kind === 'audioinput')) {
+          const elem = document.createElement('option');
+          elem.innerText = device.label;
+          elem.value = device.deviceId;
+          eAudioOptions.appendChild(elem);
+        }
+
+        for(const device of devices.filter(v => v.kind === 'videoinput')) {
+          const elem = document.createElement('option');
+          elem.innerText = device.label;
+          elem.value = device.deviceId;
+          eVideoOptions.appendChild(elem);
+        }
+        // const 
+      })();
+
+      eCallBtn.disabled = false;
+
+      eStatus.innerText = 'Connecting...'
+      const peer = new Peer();
+
+      peer.on('open', (id) => {
+        eStatus.innerText = 'Connected'
+        ePid.innerText = '' + id;
+        connected = true;
+      });
+
+      peer.on('close', () => {
+        eStatus.innerText = 'Closed'
+        ePid.innerText = '';
+        connected = false;
+      });
+
+      eCallBtn.addEventListener('click', async () => {
+        await createLocalMediaStream();
+        const conn = peer.connect(eCallPid.value);
+        addConnection(conn);
+        eCallBtn.disabled = true;
+        const call = peer.call(eCallPid.value, localMediaStream);
+        call.on('stream', (mediaStream) => addCall(call, mediaStream));
+        eOutgoingStatus.innerText = 'Calling...';
+      });
+
+      peer.on('connection', (connection) => {
+        addConnection(connection);
+      });
+
+      eAnswerBtn.addEventListener('click', async () => {
+        await createLocalMediaStream();
+        const tempCall = incommingCall;
+        incommingCall = null;
+        tempCall.on('stream', (mediaStream) => addCall(tempCall, mediaStream));
+        tempCall.answer(localMediaStream);
+        eIncommingStatus.innerText = '';
+        eAnswerBtn.disabled = true;
+      });
+
+      peer.on('call', (call) => {
+        eIncommingStatus.innerText = 'Incomming call from ' + call.peer;
+        eAnswerBtn.disabled = false;
+        incommingCall = call;
+      });
+
+      const connections = {}
+
+      function addConnection(conn) {
+        connections[conn.peer] ??= {};
+        connections[conn.peer].conn = conn;
+        onCall(conn.peer);
+      }
+
+      function addCall(call, mediaStream) {
+
+        connections[call.peer] ??= {};
+        connections[call.peer].call = call;
+        connections[call.peer].mediaStream = mediaStream;
+        onCall(call.peer);
+      }
+
+      function onCall(peerId) {
+        const { call, conn, mediaStream, completed } = connections[peerId];
+        if(!call || !conn || !mediaStream) return;
+        if(completed) return;
+        connections[peerId].completed = true;
+
+        console.log('fully connected!');
+
+        eOutgoingStatus.innerText = 'Inactive';
+        eCallBtn.disabled = false;
+        eCallPid.value = '';
+        eIncommingStatus.innerText = '';
+        eAnswerBtn.disabled = true;
+
+        // while(eTracks.firstChild) {
+        //   eTracks.removeChild(eTracks.firstChild);
+        // }
+
+        const root = document.createElement('fieldset');
+        const elem = document.createElement('video');
+        const legend = document.createElement('legend');
+        const endBtn = document.createElement('button');
+
+        elem.autoplay = true;
+        elem.controls = true;
+        elem.style.width = '100%';
+        elem.srcObject = mediaStream;
+
+        legend.innerText = peerId;
+
+        endBtn.innerText = "END";
+        endBtn.addEventListener('click', () => {
+          conn.close();
+          call.close();
+        });
+
+        // root.appendChild(document.createElement('br'));
+        root.appendChild(legend);
+        root.appendChild(endBtn);
+        root.appendChild(document.createElement('br'));
+        root.appendChild(elem);
+
+        eTracks.appendChild(root);
+
+        conn.on('close', () => {
+          while(root.firstChild) {
+            root.removeChild(root.firstChild);
+          }
+          root.remove();
+          delete connections[peerId];
+          if(Object.keys(connections).length === 0) closeLocalMediaStream();
+        });
+      }
+
+      // eEndBtn.addEventListener('click', () => {
+      //   call.close();
+      // })
+
+    </script>
+  </body>
+</html>
