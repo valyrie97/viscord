@@ -68,6 +68,8 @@
       let localMediaStream = null;
       let remoteMediaStream = null;
       let incommingCall = null;
+      let currentVideoTrackId = null;
+      let currentAudioTrackId = null;
 
       function closeLocalMediaStream() {
         for(const track of localMediaStream.getTracks()) {
@@ -92,7 +94,21 @@
             }
           }
         });
-      }
+
+        if(eVideoOptions.value === 'none') {
+          const canvas = Object.assign(document.createElement("canvas"), {
+              width: 160,
+              height: 90
+          });
+          canvas.getContext("2d").fillRect(0, 0, 160, 90);
+          const blankStream = canvas.captureStream();
+          const videoTrack = blankStream.getVideoTracks()[0];
+          console.log('empty tracks', blankStream, videoTrack);
+          localMediaStream.addTrack(videoTrack);
+        }
+
+        updateOutgoing();
+      };
 
       console.dir(eAudioOptions);
 
@@ -104,20 +120,14 @@
             .filter(track => track.kind === 'audio')[0];
           const videoTrack = localMediaStream.getTracks()
             .filter(track => track.kind === 'video')[0];
+
           call.peerConnection.getSenders()
             .filter(sender => sender.track.kind === 'audio')[0]
             .replaceTrack(audioTrack);
 
-          const currentVideoTrack = call.peerConnection.getSenders()
-            .filter(sender => sender.track.kind === 'video')[0];
-
-          console.log(videoTrack, currentVideoTrack);
-
-          if(videoTrack !== undefined && currentVideoTrack === undefined) {
-            call.peerConnection.addTrack(videoTrack);
-          } else {
-            currentVideoTrack.replaceTrack(videoTrack);
-          }
+          call.peerConnection.getSenders()
+            .filter(sender => sender.track.kind === 'video')[0]
+            .replaceTrack(videoTrack)
 
         }
       }
@@ -202,6 +212,9 @@
       });
 
       peer.on('call', (call) => {
+        if(incommingCall !== null) {
+          return; // reject the call request.
+        }
         eIncommingStatus.innerText = 'Incomming call from ' + call.peer;
         eAnswerBtn.disabled = false;
         incommingCall = call;
