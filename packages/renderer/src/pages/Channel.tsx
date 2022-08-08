@@ -56,7 +56,6 @@ export default function Channel(props: ChannelProps) {
         margin: '2px 2px',
         display: 'grid',
         gridTemplateColumns: 'min-content 1fr',
-        color: selected ? 'cyan' : 'inherit',
         cursor: 'pointer',
         background: selected ? 'var(--neutral-5)' :
                        hover ? 'var(--neutral-4)' :
