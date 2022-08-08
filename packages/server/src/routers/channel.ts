@@ -5,10 +5,21 @@ import add from '../db/snippets/channel/new.sql';
 import { broadcast, reply } from '../lib/WebSocketServer';
 import { v4 } from 'uuid';
 
+export const mockVoiceChannels = [
+  {
+    uid: v4(),
+    name: 'Voice Test',
+    type: 'voice'
+  }
+]
+
 export default router({
   async list() {
     const res = await query(list);
-    return reply(res ?? undefined);
+    if(res === null) return;
+    return reply({
+      channels: [...(res.map(v => ({...v, type: 'text'}))), ...mockVoiceChannels]
+    });
   },
   async add(channel: any) {
     const name = channel.name;

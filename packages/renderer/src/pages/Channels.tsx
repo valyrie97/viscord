@@ -10,10 +10,12 @@ import useChannel from '../hooks/useChannel';
 import useClientId from '../hooks/useClientId';
 import useHomeServer from '../contexts/PersistentState/useHomeServerNative';
 import Channel from './Channel';
+import { ChannelType } from '../contexts/EphemeralState/EphemeralState';
 
 interface IChannel {
   uid: string;
   name: string;
+  type: ChannelType;
 }
 
 interface IUnreads {
@@ -25,12 +27,12 @@ export default function Channels() {
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [unreads, setUnreads] = useState<IUnreads>({});
 
-  const { channel, setChannel } = useChannel()
-  const { clientId } = useClientId()
+  const { channel, setChannel } = useChannel();
+  const { clientId } = useClientId();
 
   const { send } = useApi({
-    'channels:list'(data: IChannel[]) {
-      setChannels(data);
+    'channels:list'(data: any) {
+      setChannels(data.channels);
     },
     'channel:add'(channel: IChannel) {
       setChannels([...channels, channel]);
@@ -53,7 +55,7 @@ export default function Channels() {
   useEffect(() => {
     if(channels.length === 0) return;
     if(channel !== null) return;
-    setChannel(channels[0].uid);
+    setChannel(channels[1].uid, channels[1].type);
   }, [channel, channels]);
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function Channels() {
 
   useEffect(() => {
     if(clientId === null) return;
-    send('client:get', { clientId });
+    // send('client:get', { clientId });
   }, [clientId]);
 
   const textbox = useRef<HTMLInputElement>(null);
@@ -90,6 +92,7 @@ export default function Channels() {
         <Channel
           key={c.uid}
           uid={c.uid}
+          type={c.type}
           unread={unreads[c.uid] ?? 0}
           name={c.name}
         ></Channel>

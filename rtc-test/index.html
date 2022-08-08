@@ -8,11 +8,31 @@
       #tracks {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-auto-flow: column;
+        grid-auto-flow: row;
+      }
+      #tracks fieldset {
+        width: '50%'
       }
     </style>
   </head>
   <body>
+    <div id="tracks"></div>
+    <fieldset>
+      <legend>Call</legend>
+      <div id="call_status"></div>
+
+
+      <label>Audio</label>
+      <select id="in_audio">
+      </select>
+      <br />
+      
+      <label>Video</label>
+      <select id="in_video">
+      </select>
+      <br />
+      
+    </fieldset>
     <fieldset>
       <legend>Peer Connection</legend>
       <div>Peer ID: <span id="pid"></span></div>
@@ -31,24 +51,7 @@
       <div id="in_status"></div>
       <button disabled type="submit" id="answer_btn">ANSWER</button>
     </fieldset>
-    <fieldset>
-      <legend>Call</legend>
-      <div id="call_status"></div>
 
-
-      <label>Audio</label>
-      <select id="in_audio">
-      </select>
-      <br />
-      
-      <label>Video</label>
-      <select id="in_video">
-      </select>
-      <br />
-      
-    </fieldset>
-
-    <div id="tracks"></div>
 
     <script>
       const eStatus = document.getElementById('status');
@@ -70,6 +73,19 @@
       let incommingCall = null;
       let currentVideoTrackId = null;
       let currentAudioTrackId = null;
+      let selfBoxRemove = null;
+      let ctx = null;
+
+      setInterval(() => {
+        if(ctx === null) return;
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, 160, 90);
+        setTimeout(() => {
+          if(ctx === null) return;
+          ctx.fillStyle = 'red';
+          ctx.fillRect(0, 0, 160, 90);
+        }, 100);
+      }, 200);
 
       function closeLocalMediaStream() {
         for(const track of localMediaStream.getTracks()) {
@@ -78,6 +94,7 @@
       }
 
       async function createLocalMediaStream() {
+        console.log('creating stream');
         if(localMediaStream !== null) {
           closeLocalMediaStream();
         }
@@ -100,22 +117,22 @@
               width: 160,
               height: 90
           });
-          canvas.getContext("2d").fillRect(0, 0, 160, 90);
+          ctx = canvas.getContext("2d");
           const blankStream = canvas.captureStream();
           const videoTrack = blankStream.getVideoTracks()[0];
-          console.log('empty tracks', blankStream, videoTrack);
           localMediaStream.addTrack(videoTrack);
         }
 
         updateOutgoing();
       };
 
-      console.dir(eAudioOptions);
-
       async function updateOutgoing() {
-        await createLocalMediaStream();
         for(const peerId in connections) {
-          const { call } = connections[peerId];
+          const { call, completed } = connections[peerId];
+          if(!completed) continue;
+
+          if(call.peerConnection === undefined) debugger;
+
           const audioTrack = localMediaStream.getTracks()
             .filter(track => track.kind === 'audio')[0];
           const videoTrack = localMediaStream.getTracks()
@@ -128,12 +145,21 @@
           call.peerConnection.getSenders()
             .filter(sender => sender.track.kind === 'video')[0]
             .replaceTrack(videoTrack)
+        }
 
+        selfBoxRemove?.();
+
+        if(Object.keys(connections.filter(c => c.completed)).length === 0) {
+          selfBoxRemove = addVideoBox(localMediaStream, 'Self', () => {
+            alert('DISCO ALL CONNS');
+          }).remove;
+        } else {
+          selfBoxRemove = null;
         }
       }
 
-      eAudioOptions.onchange = updateOutgoing;
-      eVideoOptions.onchange = updateOutgoing;
+      eAudioOptions.onchange = createLocalMediaStream;
+      eVideoOptions.onchange = createLocalMediaStream;
 
       // get permissions and enumerate devices
       (async function() {
@@ -145,8 +171,7 @@
           track.stop();
         }
         const devices = await navigator.mediaDevices.enumerateDevices();
-        console.log(devices);
-        
+
         for(const device of devices.filter(v => v.kind === 'audioinput')) {
           const elem = document.createElement('option');
           elem.innerText = device.label;
@@ -236,24 +261,7 @@
         onCall(call.peer);
       }
 
-      function onCall(peerId) {
-        const { call, conn, mediaStream, completed } = connections[peerId];
-        if(!call || !conn || !mediaStream) return;
-        if(completed) return;
-        connections[peerId].completed = true;
-
-        console.log('fully connected!');
-
-        eOutgoingStatus.innerText = 'Inactive';
-        eCallBtn.disabled = false;
-        eCallPid.value = '';
-        eIncommingStatus.innerText = '';
-        eAnswerBtn.disabled = true;
-
-        // while(eTracks.firstChild) {
-        //   eTracks.removeChild(eTracks.firstChild);
-        // }
-
+      function addVideoBox(stream, name, end) {
         const root = document.createElement('fieldset');
         const elem = document.createElement('video');
         const legend = document.createElement('legend');
@@ -262,15 +270,12 @@
         elem.autoplay = true;
         elem.controls = true;
         elem.style.width = '100%';
-        elem.srcObject = mediaStream;
+        elem.srcObject = stream;
 
-        legend.innerText = peerId;
+        legend.innerText = name;
 
         endBtn.innerText = "END";
-        endBtn.addEventListener('click', () => {
-          conn.close();
-          call.close();
-        });
+        endBtn.addEventListener('click', end);
 
         // root.appendChild(document.createElement('br'));
         root.appendChild(legend);
@@ -280,14 +285,44 @@
 
         eTracks.appendChild(root);
 
-        conn.on('close', () => {
-          while(root.firstChild) {
-            root.removeChild(root.firstChild);
+        return {
+          remove() {
+            while(root.firstChild) {
+              root.removeChild(root.firstChild);
+            }
+            root.remove();
           }
-          root.remove();
-          delete connections[peerId];
-          if(Object.keys(connections).length === 0) closeLocalMediaStream();
-        });
+        }
+      }
+
+      function onCall(peerId) {
+        const { call, conn, mediaStream, completed } = connections[peerId];
+        if(!call || !conn || !mediaStream) return;
+        if(completed) return;
+        connections[peerId].completed = true;
+
+        eOutgoingStatus.innerText = 'Inactive';
+        eCallBtn.disabled = false;
+        eCallPid.value = '';
+        eIncommingStatus.innerText = '';
+        eAnswerBtn.disabled = true;
+      }
+
+      function updateRemoteBoxes() {
+        for(const peerId in connections.filter(c => c.completed)) {
+          const { mediaStream, call, conn } = connections[peerId];
+
+          const { remove } = addVideoBox(mediaStream, peerId.split('-')[0], () => {
+            conn.close();
+            call.close();
+          });
+  
+          conn.on('close', () => {
+            remove();
+            delete connections[peerId];
+            if(Object.keys(connections).length === 0) closeLocalMediaStream();
+          });
+        }
       }
 
       // eEndBtn.addEventListener('click', () => {

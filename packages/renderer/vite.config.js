@@ -21,6 +21,7 @@ const config = {
   },
   base: '',
   server: {
+    host: true,
     fs: {
       strict: true,
     },

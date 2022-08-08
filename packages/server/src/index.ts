@@ -1,5 +1,5 @@
 import router from './lib/router';
-import { expose } from './lib/WebSocketServer';
+import { expose, reply } from './lib/WebSocketServer';
 
 import message from './routers/message';
 import channel from './routers/channel';
@@ -8,7 +8,9 @@ import totp from './routers/totp';
 
 const api = router({
   up() {
-    console.log(Date.now());
+    return reply({
+      time: Date.now()
+    });
   },
   message: message,
   messages: message,
@@ -19,6 +21,7 @@ const api = router({
   totp: totp,
   session: session,
   sessions: session,
+  voice: voice
 });
 
 expose(api, 3000);
@@ -27,6 +30,7 @@ expose(api, 3000);
 
 import { update } from './db/migrate';
 import session from './routers/session';
+import voice from './routers/voice';
 
 try {
   update();

@@ -4,6 +4,25 @@ export function connectApi(url: string) {
   let connectionAttempts = 0;
   let destroy = false;
   let routers: any[] = [];
+  let keepalive: NodeJS.Timer | null = null;
+
+  function startKeepalive() {
+    keepalive = setInterval(() => {
+      if(socket !== null) {
+        socket.send(JSON.stringify({
+          action: 'up',
+          data: {}
+        }))
+      } else {
+        stopKeepalive();
+      }
+    }, 30_000);
+  }
+
+  function stopKeepalive() {
+    if(keepalive !== null)
+    clearInterval(keepalive);
+  }
   
   const connect = async () => {
     try {
@@ -25,23 +44,26 @@ export function connectApi(url: string) {
       if(socket === null) return;
       connectionAttempts = 0;
       console.log('connected to', url);
+      startKeepalive();
       // socket.send('Hello Server!');
     });
-  
+
     socket.addEventListener('message', (event) => {
       const {action, data} = JSON.parse(event.data);
       // console.debug('[IN]', action, data);
       const routeFound = routers
         .map(router => router(action, data))
         .reduce((a, b) => a + b, 0);
-      if(routeFound === 0) {
+      if(routeFound === 0 && action !== 'up') {
         console.warn(`route <${action}> not found`);
       }
     });
   
     socket.addEventListener('close', () => {
-      if(destroy) return;
+      stopKeepalive();
       socket = null;
+      if(destroy) return;
+
       connect();
     });
   };

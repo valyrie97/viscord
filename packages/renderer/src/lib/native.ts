@@ -1,6 +1,13 @@
 import * as preload from '#preload';
-
 // console.log('#preload', preload);
+
+function ls(key: string, value?: string) {
+  if(value === undefined) {
+    return localStorage.getItem(key);
+  } else {
+    localStorage.setItem(key, value);
+  }
+}
 
 const functions: any = (function() {
   const electron = !!preload.versions;
@@ -13,17 +20,23 @@ const functions: any = (function() {
     let homeServer: string | null = null;
     return {
       getClientId() {
-        return cid;
+        return ls('clientId');
       },
       setClientId(id: any) {
-        cid = id;
+        ls('clientId', id);
       },
       getHomeServer() {
-        return homeServer;
+        return ls('homeServer');
       },
       setHomeServer(str: string) {
-        homeServer = str;
-      }
+        ls('homeServer', str);
+      },
+      getSessionToken() {
+        return ls('sessionToken');
+      },
+      setSessionToken(str: string) {
+        ls('sessionToken', str);
+      },
     };
   }
 })();

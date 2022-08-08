@@ -1,11 +1,19 @@
 import { createContext, useState, useMemo, useEffect } from "react";
+import UserMediaState from "./UserMediaState";
+import PeerState from "./PeerState";
+
+export type ChannelType = 'text' | 'voice';
 
 export const ChannelContext = createContext<{
   channel: string | null,
-  setChannel: (uid: string) => void
+  text: boolean,
+  voice: boolean,
+  setChannel: (uid: string, type: ChannelType) => void
 }>({
   channel: null,
   setChannel: () => {},
+  text: false,
+  voice: false,
 });
 export const TransparencyContext = createContext<(transparent: boolean) => void>(() => {});
 export const SettingsContext = createContext<{
@@ -24,12 +32,38 @@ export default function EphemeralState(props: {
 }) {
 
   const [channel, setChannel] = useState<string | null>(null);
+  const [voice, setVoice] = useState(false);
+  const [text, setText] = useState(false);
   const [transparent, setTransparent] = useState(false);
 
   const [settings, setSettings] = useState(false);
 
   const channelContextValue = useMemo(() => {
-    return { channel, setChannel };
+    return {
+      channel,
+      setChannel: (uid: string, channelType: ChannelType) => {
+        setChannel(uid);
+        switch(channelType) {
+          case 'text': {
+            setVoice(false);
+            setText(true);
+            break;
+          }
+          case 'voice': {
+            setVoice(true);
+            setText(false);
+            break;
+          }
+          default: {
+            setVoice(false);
+            setText(false);
+            break;
+          }
+        }
+      },
+      voice,
+      text
+    };
   }, [channel, setChannel]);
 
   useEffect(() => {
@@ -46,7 +80,11 @@ export default function EphemeralState(props: {
           closeSettings: () => setSettings(false),
           isSettingsOpen: settings,
         }}>
-          {props.children}
+          <UserMediaState>
+            <PeerState>
+              {props.children}
+            </PeerState>
+          </UserMediaState>
         </SettingsContext.Provider>
       </TransparencyContext.Provider>
     </ChannelContext.Provider>
