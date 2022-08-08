@@ -1,6 +1,7 @@
 import { createContext, useState, useMemo, useEffect } from "react";
 import UserMediaState from "./UserMediaState";
 import PeerState from "./PeerState";
+import ClientsListState from "./ClientsListState";
 
 export type ChannelType = 'text' | 'voice';
 

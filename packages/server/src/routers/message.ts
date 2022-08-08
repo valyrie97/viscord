@@ -2,7 +2,6 @@ import query from '../db/query';
 import router from '../lib/router';
 import newMessage from '../db/snippets/message/new.sql';
 import recentMessages from '../db/snippets/message/recent.sql';
-import getName from '../db/snippets/client/get.sql';
 import { broadcast, reply } from '../lib/WebSocketServer';
 
 export default router({
@@ -20,10 +19,8 @@ export default router({
       data.channel,
     );
     if(response === null) return;
-    // translate from to a real name
-    const nameRes = await query(getName, data.$clientId);
-    if(nameRes === null) return;
-    data.from = nameRes[0].name;
+    
+    data.from = data.$clientId;
     return broadcast(data);
   },
   async recent(data: any) {

@@ -7,6 +7,7 @@ import useHover from "../hooks/useHover";
 import { useApi } from "../lib/useApi";
 import { useContext, useEffect, useState } from "react";
 import { VoiceChannelContext } from "../contexts/EphemeralState/VoiceChannelState";
+import { ClientsListContext } from "../contexts/EphemeralState/ClientsListState";
 
 interface ChannelProps {
   unread: number;
@@ -16,6 +17,7 @@ interface ChannelProps {
 }
 
 export default function Channel(props: ChannelProps) {
+  const { clientName } = useContext(ClientsListContext);
   const { channel, setChannel } = useChannel();
   const { unread, uid, name, type } = props;
   const [ref, hover] = useHover<HTMLDivElement>();
@@ -126,7 +128,7 @@ export default function Channel(props: ChannelProps) {
       <br></br>
       {participants.map(participant => (
         <div key={participant.clientId}>
-          {participant.clientId}
+          {clientName[participant.clientId]}
         </div>
       ))}
     </div>

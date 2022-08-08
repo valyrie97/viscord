@@ -1,4 +1,7 @@
-import {BrowserWindow} from 'electron';
+import {
+  BrowserWindow,
+  session
+} from 'electron';
 import {join} from 'path';
 import {URL} from 'url';
 
@@ -10,6 +13,7 @@ async function createWindow() {
       webviewTag: false, // The webview tag is not recommended. Consider alternatives like iframe or Electron's BrowserView. https://www.electronjs.org/docs/latest/api/webview-tag#warning
       preload: join(__dirname, '../../preload/dist/index.cjs'),
     },
+    
   });
 
   browserWindow.setMenu(null);
@@ -39,6 +43,11 @@ async function createWindow() {
 
 
   await browserWindow.loadURL(pageUrl);
+
+  // session.fromPartition('default').setPermissionRequestHandler((webContents, permission, callback) => {
+  //   console.log('requested permission', permission);
+
+  // })
 
   return browserWindow;
 }

@@ -1,10 +1,11 @@
 import router from '../lib/router';
 import query from '../db/query';
-import { reply } from '../lib/WebSocketServer';
+import { broadcast, reply } from '../lib/WebSocketServer';
 
 import _new from '../db/snippets/client/new.sql';
 import _get from '../db/snippets/client/get.sql';
 import rename from '../db/snippets/client/rename.sql';
+import database from '../lib/dbHelpers/database';
 
 export default router({
   async 'new'(data: any) {
@@ -14,7 +15,7 @@ export default router({
       data.username,
     );
     if(response === null) return;
-    return reply({
+    return broadcast({
       clientId: response[0][0].uid
     });
   },
@@ -32,4 +33,9 @@ export default router({
     const res = await query(rename, name, clientId);
     // silent failure O.O
   },
+  async list() {
+    return reply({
+      clients: await database.get.all.displayNames()
+    });
+  }
 });

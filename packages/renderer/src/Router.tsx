@@ -3,6 +3,7 @@ import ServerConnection from "./components/ServerConnection";
 import Sidebar from "./components/Sidebar";
 import TwoPanel from "./components/TwoPanel";
 import Voice from "./components/Voice";
+import ClientsListState from "./contexts/EphemeralState/ClientsListState";
 import { SettingsContext } from "./contexts/EphemeralState/EphemeralState";
 import useHomeServer from "./contexts/PersistentState/useHomeServerNative";
 import useChannel from "./hooks/useChannel";

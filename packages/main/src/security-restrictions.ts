@@ -6,11 +6,27 @@ import {URL} from 'url';
  *
  * In development mode you need allow open `VITE_DEV_SERVER_URL`
  */
-const ALLOWED_ORIGINS_AND_PERMISSIONS = new Map<string, Set<'clipboard-read' | 'media' | 'display-capture' | 'mediaKeySystem' | 'geolocation' | 'notifications' | 'midi' | 'midiSysex' | 'pointerLock' | 'fullscreen' | 'openExternal' | 'unknown'>>(
+type PermissionScope =
+      'clipboard-read'
+    | 'media'
+    | 'display-capture'
+    | 'mediaKeySystem'
+    | 'geolocation'
+    | 'notifications'
+    | 'midi'
+    | 'midiSysex'
+    | 'pointerLock'
+    | 'fullscreen'
+    | 'openExternal'
+    | 'unknown';
+const ALLOWED_ORIGINS = new Set<string>(
   import.meta.env.DEV && import.meta.env.VITE_DEV_SERVER_URL
-    ? [[new URL(import.meta.env.VITE_DEV_SERVER_URL).origin, new Set]]
+    ? [new URL(import.meta.env.VITE_DEV_SERVER_URL).origin]
     : [],
 );
+const ALLOWED_PERMISSIONS: PermissionScope[] = [
+  'media'
+]
 
 /**
  * List of origins that you allow open IN BROWSER.
@@ -39,7 +55,7 @@ app.on('web-contents-created', (_, contents) => {
    */
   contents.on('will-navigate', (event, url) => {
     const {origin} = new URL(url);
-    if (ALLOWED_ORIGINS_AND_PERMISSIONS.has(origin)) {
+    if (ALLOWED_ORIGINS.has(origin)) {
       return;
     }
 
@@ -61,7 +77,7 @@ app.on('web-contents-created', (_, contents) => {
   contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
     const {origin} = new URL(webContents.getURL());
 
-    const permissionGranted = !!ALLOWED_ORIGINS_AND_PERMISSIONS.get(origin)?.has(permission);
+    const permissionGranted = !!ALLOWED_PERMISSIONS.includes(permission)
     callback(permissionGranted);
 
     if (!permissionGranted && import.meta.env.DEV) {
@@ -106,7 +122,7 @@ app.on('web-contents-created', (_, contents) => {
    */
   contents.on('will-attach-webview', (event, webPreferences, params) => {
     const {origin} = new URL(params.src);
-    if (!ALLOWED_ORIGINS_AND_PERMISSIONS.has(origin)) {
+    if (!ALLOWED_ORIGINS.has(origin)) {
 
       if (import.meta.env.DEV) {
         console.warn(`A webview tried to attach ${params.src}, but was blocked.`);
