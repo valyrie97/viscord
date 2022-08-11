@@ -30,7 +30,7 @@ function useCurrent<T>(thing: T) {
 interface Connection {
   peerId: string;
   clientId: string;
-  channelID: string;
+  channelId: string;
   call: any;
 }
 
@@ -50,23 +50,49 @@ export default function PeerState(props: any) {
     setIncomingCalls(incomingCalls => ([...incomingCalls, call]));
   }, []));
   
+  useEffect(() => {
+    console.log(connections);
+  }, [connections]);
+
   const { send } = useApi({
     'voice:join'(data: any) {
-      if(data.channelId !== channel) return
-      console.log('PEER STATE CONNECTIONS', data);
+      if(data.channelId !== channel) return;
+      if(data.peerId === peerId) return;
+      setConnections((connections) => ([
+        ...connections,
+        {
+          call: null,
+          clientId: data.clientId,
+          peerId: data.peerId,
+          channelId: data.channelId
+        }
+      ]))
     },
     'voice:leave'(data: any) {
-      if(data.channelId !== channel) return
-      console.log('PEER STATE CONNECTIONS', data)
+      if(data.channelId !== channel) return;
+      if(data.peerId === peerId) return;
+      setConnections(connections => connections.filter(connection => (
+        connection.channelId !== data.channelId ||
+        connection.clientId !== data.clientId ||
+        connection.peerId !== data.peerId
+      )));
     },
     'voice:list'(data: any) {
       if(data.uid !== channel) return
       setConnections(connections => {
-        
+        return data.participants
+        .filter((p: any) => p.peerId !== peerId)
+        .map((participant: any) => {
+          const previousCall = null;
+          return {
+            ...participant,
+            call: null
+          }
+        })
       })
       console.log('PEER STATE CONNECTIONS', data);
     }
-  }, [channel]);
+  }, [channel, peerId]);
 
   useEffect(() => {
     if(connected) return;
