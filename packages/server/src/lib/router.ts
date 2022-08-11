@@ -1,14 +1,12 @@
-
-
 export default function router(routes: any) {
   for(const routeName in routes) {
     const route = routes[routeName];
     if('routes' in route) {
       for(const suffix of route.routes) {
         const combinedRouteName = routeName + ':' + suffix;
-        routes[combinedRouteName] = function(data: any) {
+        routes[combinedRouteName] = function(...args: any[]) {
           // console.log(suffix, route, data)
-          return route(suffix, data);
+          return route(suffix, ...args);
           // console.log('INCOMMING', args)
         };
       }
@@ -16,9 +14,9 @@ export default function router(routes: any) {
     }
   }
 
-  const sendFn = function(route: any, data: any) {
+  const sendFn = function(route: any, ...args: any[]) {
     if(route in routes) {
-      return routes[route](data);
+      return routes[route](...args);
     } else {
       console.warn(`route <${route}> not found`);
       console.trace();

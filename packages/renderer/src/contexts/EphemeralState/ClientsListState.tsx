@@ -30,10 +30,6 @@ export default function ClientsListState(props: any) {
   });
 
   useEffect(() => {
-    console.log(clients);
-  }, [clients]);
-
-  useEffect(() => {
     send('clients:list')
   }, []);
 

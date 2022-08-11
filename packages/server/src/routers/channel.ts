@@ -10,6 +10,11 @@ export const mockVoiceChannels = [
     uid: v4(),
     name: 'Voice Test',
     type: 'voice'
+  },
+  {
+    uid: v4(),
+    name: 'Voice Test 2',
+    type: 'voice'
   }
 ]
 

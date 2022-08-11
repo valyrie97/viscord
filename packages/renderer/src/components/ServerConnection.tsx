@@ -1,5 +1,6 @@
 import { createContext, PropsWithChildren, ReactNode, useEffect, useMemo } from "react";
 import ClientsListState from "../contexts/EphemeralState/ClientsListState";
+import PeerState from "../contexts/EphemeralState/PeerState";
 import { connectApi } from "../lib/api";
 
 interface ServerConnectionProps {
@@ -33,7 +34,9 @@ export default function ServerConnection(props: ServerConnectionProps) {
 
   return <ServerConnectionContext.Provider value={serverConnection}>
     <ClientsListState>
-      {props.children}
+      <PeerState>
+        {props.children}
+      </PeerState>
     </ClientsListState>
   </ServerConnectionContext.Provider>
 }

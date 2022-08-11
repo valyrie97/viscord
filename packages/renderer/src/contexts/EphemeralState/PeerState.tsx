@@ -1,13 +1,20 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Peer, MediaConnection } from "peerjs";
 import { UserMediaContext } from "./UserMediaState";
+import { useApi } from "/@/lib/useApi";
 
 export const PeerContext = createContext<{
   connected: boolean;
-  peerId: string | null
+  inCall: boolean;
+  peerId: string | null;
+  join: (channelId: string) => void;
+  leave: () => void;
 }>({
   connected: false,
-  peerId: null
+  peerId: null,
+  inCall: false,
+  join: () => {},
+  leave: () => {}
 });
 
 function useCurrent<T>(thing: T) {
@@ -20,6 +27,13 @@ function useCurrent<T>(thing: T) {
   return thingRef.current;
 }
 
+interface Connection {
+  peerId: string;
+  clientId: string;
+  channelID: string;
+  call: any;
+}
+
 export default function PeerState(props: any) {
 
   const { mediaStream } = useContext(UserMediaContext);
@@ -29,17 +43,30 @@ export default function PeerState(props: any) {
   const [peer, setPeer] = useState<Peer | null>(null);
   const [peerId, setPeerId] = useState<string | null>(null);
   const [incomingCalls, setIncomingCalls] = useState<MediaConnection[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [channel, setChannel] = useState<string | null>(null);
 
-  const addCall = useCurrent(useCallback((call: MediaConnection) => {
-    // HACK lookout for possible timing issues here.
-    // if we get two incomming calls before a re-render
-    // then our state could be out of date?!
-    // a possible solution is to cache the 
-    // append to the list, and if the cache and
-    // state disagree, add to the cache, and set state
-    // to the cached value.
-    setIncomingCalls([...incomingCalls, call]);
-  }, [incomingCalls]))
+  const addIncomingCall = useCurrent(useCallback((call: MediaConnection) => {
+    setIncomingCalls(incomingCalls => ([...incomingCalls, call]));
+  }, []));
+  
+  const { send } = useApi({
+    'voice:join'(data: any) {
+      if(data.channelId !== channel) return
+      console.log('PEER STATE CONNECTIONS', data);
+    },
+    'voice:leave'(data: any) {
+      if(data.channelId !== channel) return
+      console.log('PEER STATE CONNECTIONS', data)
+    },
+    'voice:list'(data: any) {
+      if(data.uid !== channel) return
+      setConnections(connections => {
+        
+      })
+      console.log('PEER STATE CONNECTIONS', data);
+    }
+  }, [channel]);
 
   useEffect(() => {
     if(connected) return;
@@ -59,7 +86,7 @@ export default function PeerState(props: any) {
     });
 
     peer.on('call', (call: MediaConnection) => {
-      addCall(call);
+      addIncomingCall(call);
     });
   }, [connected]);
 
@@ -69,10 +96,23 @@ export default function PeerState(props: any) {
     peer.call(id, mediaStream);
   }, [peer, mediaStream])
 
+  const joinChannel = (channelId: string) => {
+    setChannel(channelId);
+    send('voice:list', { channelId })
+  }
+
+  useEffect(() => {
+    if(channel === null) return;
+    console.log('WE JOINED A CHANNEL')
+  }, [channel])
+
   const value = useMemo(() => ({
     connected,
     peerId,
-  }), [connected, peerId]);
+    inCall: connections.length === 0,
+    join: joinChannel,
+    leave: () => {}
+  }), [connected, peerId, connections]);
 
   return <PeerContext.Provider value={value}>
     {props.children}

@@ -82,9 +82,7 @@ export default function EphemeralState(props: {
           isSettingsOpen: settings,
         }}>
           <UserMediaState>
-            <PeerState>
-              {props.children}
-            </PeerState>
+            {props.children}
           </UserMediaState>
         </SettingsContext.Provider>
       </TransparencyContext.Provider>

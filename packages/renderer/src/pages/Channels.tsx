@@ -11,6 +11,7 @@ import useClientId from '../hooks/useClientId';
 import useHomeServer from '../contexts/PersistentState/useHomeServerNative';
 import Channel from './Channel';
 import { ChannelType } from '../contexts/EphemeralState/EphemeralState';
+import { sfx } from '../lib/sound';
 
 interface IChannel {
   uid: string;
@@ -38,7 +39,9 @@ export default function Channels() {
       setChannels([...channels, channel]);
     },
     'message:message'(message: IMessage) {
+      sfx.message();
       if(channel === message.channel) return;
+      
       setUnreads({
         ...unreads,
         [message.channel]: (unreads[message.channel] ?? 0) + 1,

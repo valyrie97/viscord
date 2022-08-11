@@ -7,17 +7,21 @@ import { useApi } from "../lib/useApi";
 
 export default function Voice(props: any) {
   const { uid } = props;
-  const { connected, peerId } = useContext(PeerContext);
+  const { connected, peerId, join } = useContext(PeerContext);
   const { channel } = useChannel();
 
-  const { send } = useApi({
-    
-  });
+  const { send } = useApi({});
 
   const joinCall = useCallback(() => {
-    if(peerId === null || connected === false) return;
+    if(peerId === null || connected === false || channel === null) return;
+    join(channel);
     send('voice:join', { peerId, channelId: channel })
-  }, [connected, peerId, channel])
+  }, [connected, peerId, channel]);
+
+  const leaveCall = useCallback(() => {
+    if(peerId === null || connected === false) return;
+    send('voice:leave', { peerId, channelId: channel })
+  }, [connected, peerId, channel]);
 
   return <div style={{
     width: '100%',
@@ -32,6 +36,7 @@ export default function Voice(props: any) {
     <fieldset>
       <legend>Actions</legend>
       <button onClick={joinCall}>Join Call</button>
+      <button onClick={leaveCall}>Leave Call</button>
     </fieldset>
   </div>
 }
