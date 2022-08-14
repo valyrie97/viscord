@@ -1,9 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Peer, MediaConnection } from "peerjs";
 import { UserMediaContext } from "./UserMediaState";
 import { useApi } from "/@/lib/useApi";
 import { Audio } from "/@/components/Audio";
 import { sfx } from "/@/lib/sound";
+import { Video } from '../../components/Video';
+import React from "react";
+import { useLog } from "/@/components/useLog";
 
 export const PeerContext = createContext<{
   connected: boolean;
@@ -11,7 +14,7 @@ export const PeerContext = createContext<{
   peerId: string | null;
   join: (channelId: string) => void;
   leave: () => void;
-  connections: Connection[];
+  connections: IConnection[];
   connectedChannel: string | null;
 }>({
   connected: false,
@@ -33,14 +36,18 @@ function useCurrent<T>(thing: T) {
   return thingRef.current;
 }
 
-export interface Connection {
+export interface IParticipant {
   peerId: string;
   clientId: string;
   channelId: string;
+}
+
+export interface IConnection extends IParticipant {
   call: MediaConnection | null;
   isCaller: boolean;
   mediaStream: MediaStream | null;
   connected: boolean;
+  videoElement: HTMLVideoElement | null;
 }
 
 function isCaller(a: string, b:string) {
@@ -59,7 +66,7 @@ export default function PeerState(props: any) {
   const [incomingCalls, setIncomingCalls] = useState<MediaConnection[]>([]);
   const [outgoingCalls, setOutgoingCalls] = useState<string[]>([]);
 
-  const [connections, setConnections] = useState<Connection[]>([]);
+  const [connections, setConnections] = useState<IConnection[]>([]);
   const [channel, setChannel] = useState<string | null>(null);
 
   const addIncomingCall = useCurrent(useCallback((call: MediaConnection) => {
@@ -71,7 +78,7 @@ export default function PeerState(props: any) {
     setIncomingCalls(calls => calls.filter(call => !peerIds.includes(call.peer)));
   }
 
-  const updateConnection = (peerId: string, data: Partial<Connection>) => {
+  const updateConnection = (peerId: string, data: Partial<IConnection>) => {
     setConnections(connections => connections.map(connection => {
       if(connection.peerId !== peerId) return connection;
       return {
@@ -86,18 +93,62 @@ export default function PeerState(props: any) {
   }
 
   const destroyConnection = (peerId: string) => {
-    setConnections(connections => connections.filter(connection => {
-      if(connection.peerId !== peerId) return true;
-      if(connection.call) {
-        connection.call.close();
-        removeConnection(peerId);
+    setConnections(connections => {
+      const conn = connections.find(c => c.peerId === peerId)
+      if(conn && conn.call) {
+        conn.call.close();
       }
-    }))
+      return connections;
+    })
+    removeConnection(peerId);
   }
 
   const addStream = (id: string, stream: MediaStream) => {
-    updateConnection(id, { mediaStream: stream, connected: true });
+    // DE BOUNCE THE INCOMING STREAMS, CAUSE WTF?!
+    setConnections(connections => {
+      const connection = connections.find(c => c.peerId === id);
+      if(!!connection && connection.mediaStream === null) {
+        return connections.map(connection => {
+          if(connection.peerId !== id) return connection;
+          if(connection.mediaStream !== null) return connection;
+          console.log('CREATED VIDEO ELEMENT');
+          const videoElement = document.createElement('video');
+          videoElement.srcObject = stream;
+          videoElement.autoplay = true;
+          videoElement.muted = true;
+          videoElement.style.height = '100%';
+          
+          return {
+            ...connection,
+            connected: true,
+            mediaStream: stream,
+            videoElement
+          }
+        })
+      } else {
+        return connections;
+      }
+    });
   }
+
+  // replace mediastream in connections when mediaStream changes.
+  useEffect(() => {
+    if(mediaStream === null) return;
+    setConnections(connections => {
+      for(const conn of connections) {
+        if(conn.call === null) continue;
+        for(const sender of conn.call.peerConnection.getSenders()) {
+          if(sender.track === null) continue;
+          if(sender.track.kind === 'audio') {
+            sender.replaceTrack(mediaStream.getAudioTracks()[0]);
+          } else if(sender.track.kind === 'video') {
+            sender.replaceTrack(mediaStream.getVideoTracks()[0]);
+          }
+        }
+      }
+      return connections;
+    })
+  }, [mediaStream])
 
   // accept / reject incoming calls
   useEffect(() => {
@@ -130,19 +181,20 @@ export default function PeerState(props: any) {
   }, [outgoingCalls, mediaStream, peer]);
 
   const { send } = useApi({
-    'voice:join'(data: any) {
+    'voice:join'(data: IParticipant) {
       if(data.channelId !== channel) return;
       if(data.peerId === peerId) return;
       if(peerId === null) return;
       sfx.joinCall();
-      const newConn: Connection = {
+      const newConn: IConnection = {
         call: null,
         connected: false,
         clientId: data.clientId,
         peerId: data.peerId,
         channelId: data.channelId,
         isCaller: isCaller(peerId, data.peerId),
-        mediaStream: null
+        mediaStream: null,
+        videoElement: null
       };
       if(newConn.isCaller) {
         setOutgoingCalls(c => [...c, data.peerId]);
@@ -152,39 +204,44 @@ export default function PeerState(props: any) {
         newConn
       ]))
     },
-    'voice:leave'(data: any) {
+    'voice:leave'(data: IParticipant) {
       sfx.leaveCall();
       if(data.channelId !== channel) return;
       if(data.peerId === peerId) return;
-      setConnections(connections => connections.filter(connection => (
-        connection.channelId !== data.channelId ||
-        connection.clientId !== data.clientId ||
-        connection.peerId !== data.peerId
-      )));
+      destroyConnection(data.peerId);
     },
-    'voice:list'(data: any) {
+    'voice:list'(data: { uid: string, participants: IParticipant[]}) {
       if(data.uid !== channel) return;
       if(peerId === null) return;
+      if(connections.length !== 0) return;
+
       setConnections(connections => {
+        console.log(connections);
         return data.participants
-        .filter((p: any) => p.peerId !== peerId)
-        .map((participant: any) => {
-          const previousCall = null;
-          const caller = isCaller(peerId, participant.peerId);
-          if(caller) {
-            setOutgoingCalls(c => [...c, participant.peerId]);
-          }
-          return {
-            ...participant,
-            call: null,
-            isCaller: caller
-          }
-        })
+          .filter((p) => p.peerId !== peerId)
+          .map((participant) => {
+            const previousCall = null;
+            const caller = isCaller(peerId, participant.peerId);
+            if(caller) {
+              setOutgoingCalls(c => [...c, participant.peerId]);
+            }
+            const newConnection: IConnection = {
+              ...participant,
+              call: null,
+              isCaller: caller,
+              mediaStream: null,
+              connected: false,
+              videoElement: null
+            }
+            return newConnection
+          })
       });
     }
-  }, [channel, peerId]);
+  }, [channel, peerId, connections]);
 
+  useLog(connections[0], 'connections');
 
+  // create and maintain a peer connection
   useEffect(() => {
     if(connected) return;
     if(peer !== null) return;
@@ -212,6 +269,7 @@ export default function PeerState(props: any) {
   const joinChannel = (channelId: string) => {
     sfx.joinCall();
     setChannel(channelId);
+    setConnections([]);
     send('voice:list', { channelId });
   }
 
@@ -233,9 +291,12 @@ export default function PeerState(props: any) {
     <div>
       {connections.map(conn => (
         (conn.mediaStream !== null) && (
-          <div key={conn.peerId}>
-            <Audio autoPlay hidden srcObject={conn.mediaStream}></Audio>
-          </div>
+          <Audio
+            key={conn.peerId}
+            autoPlay
+            hidden
+            srcObject={conn.mediaStream}
+          ></Audio>
         )
       ))}
     </div>

@@ -1,4 +1,6 @@
-import { createContext, useCallback, useMemo, useState } from "react";
+import React from "react";
+import { createContext, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Video } from "/@/components/Video";
 
 export const UserMediaContext = createContext<{
   enabled: boolean;
@@ -11,6 +13,7 @@ export const UserMediaContext = createContext<{
   enableCamera: () => void;
   disableCamera: () => void;
   cameraEnabled: boolean;
+  videoElement: HTMLVideoElement | null;
 }>({
   enabled: false,
   mediaStream: null,
@@ -22,6 +25,7 @@ export const UserMediaContext = createContext<{
   enableCamera: () => {},
   disableCamera: () => {},
   cameraEnabled: false,
+  videoElement: null,
 });
 
 export default function UserMediaState(props: any) {
@@ -30,27 +34,60 @@ export default function UserMediaState(props: any) {
   const [enabled, setEnabled] = useState(false);
   const [muted, setMuted] = useState(false);
   const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
 
-  const enable = useCallback(async () => {
-    const newStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
+  const createBlankVideoTrack = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 40;
+    canvas.height = 30;
+
+    return canvas.captureStream(60).getVideoTracks()[0];
+  }
+
+  const updateMediaStream = (mediaStream: MediaStream | null) => {
+    setMediaStream(old => {
+      if(old !== null) {
+        for(const track of old.getTracks()) {
+          track.stop();
+        }
+      }
+      return mediaStream;
     });
-
-    setMediaStream(newStream);
-    setEnabled(true);
-  }, []);
-
-  const disable = useCallback(async () => {
-    if(mediaStream === null) return;
-
-    for(const track of mediaStream?.getTracks()) {
-      track.stop();
+    if(mediaStream !== null) {
+      const videoElement = document.createElement('video');
+      videoElement.muted = true;
+      videoElement.autoplay = true;
+      videoElement.srcObject = mediaStream;
+      videoElement.style.height = '100%';
+      setVideoElement(videoElement);
+    } else {
+      setVideoElement(null);
     }
+  }
 
-    setMediaStream(null);
-    setEnabled(false);
-  }, [mediaStream]);
+  // maintaining the mediaStream...
+  useEffect(() => {
+    (async () => {
+      if(enabled) {
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: cameraEnabled,
+        });
+
+        if(!cameraEnabled) {
+          newStream.addTrack(createBlankVideoTrack());
+        }
+
+        if(muted) {
+          newStream.getAudioTracks()[0].enabled = false;
+        }
+    
+        updateMediaStream(newStream);
+      } else {
+        updateMediaStream(null);
+      }
+    })()
+  }, [enabled, cameraEnabled]);
 
   const mute = () => {
     if(mediaStream === null) return;
@@ -67,14 +104,16 @@ export default function UserMediaState(props: any) {
   const value = useMemo(() => ({
     enabled,
     mediaStream,
-    enable,
-    disable,
+    enable: () => setEnabled(true),
+    disable: () => setEnabled(false),
     mute,
     unmute,
-    muted
-  }), [enabled, mediaStream, enable, disable, muted]);
-
-
+    muted,
+    enableCamera: () => setCameraEnabled(true),
+    disableCamera: () => setCameraEnabled(false),
+    cameraEnabled,
+    videoElement
+  }), [enabled, mediaStream, muted]);
 
   return <UserMediaContext.Provider value={value}>
     {props.children}

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { MouseEventHandler, ReactNode, useCallback, useContext, useEffect, useState } from "react"
-import { MdHeadphones, MdMic, MdMicOff, MdPhoneDisabled, MdPhoneInTalk, MdScreenShare, MdSend, MdVideocam } from "react-icons/md";
+import { MdHeadphones, MdMic, MdMicOff, MdScreenShare, MdSend, MdVideoCall, MdVideocam, MdVideocamOff } from "react-icons/md";
+import { FiLogOut, FiLogIn } from 'react-icons/fi';
 import { ClientsListContext } from "../contexts/EphemeralState/ClientsListState";
-import { Connection, PeerContext } from "../contexts/EphemeralState/PeerState";
+import { IParticipant, IConnection, PeerContext } from "../contexts/EphemeralState/PeerState";
 import { UserMediaContext } from "../contexts/EphemeralState/UserMediaState";
 import useChannel from "../hooks/useChannel";
 import { useApi } from "../lib/useApi";
@@ -24,33 +25,50 @@ export default function Voice() {
   const { clientId } = useClientId();
 
   const {
-    mute, unmute, muted, enable, mediaStream
+    mute,
+    unmute,
+    muted,
+    enable,
+    disable,
+    mediaStream,
+    cameraEnabled,
+    enableCamera,
+    disableCamera
   } = useContext(UserMediaContext);
 
   const [connectedVoiceClientIds, setConnectedVoiceClientIds] = useState<string[]>([])
+  const [participants, setParticipants] = useState<IParticipant[]>([]);
 
   const { send } = useApi({
-    'voice:list'(data: { participants: Connection[] }) {
-      setConnectedVoiceClientIds(data.participants.map(c => c.clientId));
+    'voice:list'(data: { uid: string, participants: IParticipant[] }) {
+      if(data.uid !== channel) return;
+      setParticipants(data.participants);
     },
-    'voice:join'(data: Connection) {
-      setConnectedVoiceClientIds(ids => ([...ids, data.clientId]));
+    'voice:join'(data: IParticipant) {
+      if(data.channelId !== channel) return;
+      setParticipants(ps => ([...ps, data]));
     },
-    'voice:leave'(data: Connection) {
-      setConnectedVoiceClientIds(ids => ids.filter(id => data.clientId !== id));
+    'voice:leave'(data: IParticipant) {
+      if(data.channelId !== channel) return;
+      setParticipants(ps => ps.filter(p => p.peerId !== data.peerId));
     }
-  });
-
-  useEffect(() => {
-    console.log(connectedVoiceClientIds);
-  }, [connectedVoiceClientIds])
+  }, [channel]);
 
   useEffect(() => {
     send('voice:list', { channelId: channel })
-  }, [channel])
+  }, [channel]);
 
   const joinCall = useCallback(() => {
     if(peerId === null || connected === false || channel === null) return;
+    disableCamera();
+    enable();
+    join(channel);
+    send('voice:join', { peerId, channelId: channel });
+  }, [connected, peerId, channel]);
+
+  const joinCallWithVideo = useCallback(() => {
+    if(peerId === null || connected === false || channel === null) return;
+    enableCamera();
     enable();
     join(channel);
     send('voice:join', { peerId, channelId: channel });
@@ -59,6 +77,7 @@ export default function Voice() {
   const leaveCall = useCallback(() => {
     if(peerId === null || connected === false) return;
     leave();
+    disable();
     send('voice:leave', { peerId, channelId: channel });
   }, [connected, peerId, channel]);
 
@@ -81,11 +100,18 @@ export default function Voice() {
         display: 'inline',
       }}>
         {(!inThisCall) ? (
-          <CircleButton
-            icon={MdPhoneInTalk}
-            onClick={joinCall}
-            color="var(--green)"
-          ></CircleButton>
+          <>
+            <CircleButton
+              icon={FiLogIn}
+              onClick={joinCall}
+              color="var(--green)"
+            ></CircleButton>
+            <CircleButton
+              icon={MdVideoCall}
+              onClick={joinCallWithVideo}
+              color="var(--green)"
+            ></CircleButton>
+          </>
         ) : (
           <>
             <CircleButton
@@ -102,11 +128,12 @@ export default function Voice() {
               onClick={leaveCall}
             ></CircleButton>
             <CircleButton
-              icon={MdVideocam}
-              onClick={leaveCall}
+              icon={cameraEnabled ? MdVideocam : MdVideocamOff}
+              onClick={() => cameraEnabled ? disableCamera() : enableCamera()}
+              inverted={!cameraEnabled}
             ></CircleButton>
             <CircleButton
-              icon={MdPhoneDisabled}
+              icon={FiLogOut}
               onClick={leaveCall}
               color="var(--red)"
             ></CircleButton>
@@ -121,20 +148,21 @@ export default function Voice() {
       width: '100%'
     }}>
 
-      {connectedVoiceClientIds.length === 0 ? (
+      {participants.length === 0 ? (
         <span style={{ color: 'var(--neutral-6)', fontWeight: '600' }}>No one is here right now</span>
       ) : (
         <div style={{
 
         }}>
-          {connectedVoiceClientIds.map(id => {
-            const connection = connections.find(c => c.clientId === id);
-            const isMe = clientId === id;
-            const stream = (isMe ? mediaStream : connection?.mediaStream) ?? undefined
+          {participants.map(participant => {
+            const connection = connections.find(c => c.clientId === participant.clientId);
+            
+            // if(participant.clientId !== clientId) return <div key={participant.peerId}></div>;
+
             return (
               <Participant
-                name={clientName[id]}
-                stream={stream}
+                key={participant.peerId}
+                data={connection ?? participant}
               ></Participant>
             )
           })}
@@ -145,56 +173,66 @@ export default function Voice() {
 }
 
 function Participant(props: {
-  name: string,
-  stream?: MediaStream
+  data: IParticipant | IConnection
 }) {
+
+  const [videoRoot, setVideoRoot] = useState<HTMLDivElement | null>(null);
+  const { videoElement } = useContext(UserMediaContext);
+  const { clientName } = useContext(ClientsListContext);
+
+  const isSelf = useClientId().clientId === props.data.clientId;
+  const remoteVideoElement = isSelf ? (
+    videoElement
+  ) : (
+    ('videoElement' in props.data) ? (
+      props.data.videoElement
+    ) : (
+      null
+    )
+  );
+
+  useLayoutEffect(() => {
+    if(videoRoot === null) return;
+    if(remoteVideoElement === null) return;
+
+    const alreadyThere = [...videoRoot.childNodes].includes(remoteVideoElement);
+
+    if(!alreadyThere) {
+      while(!!videoRoot.firstChild) {
+        videoRoot.firstChild.remove();
+      }
+      videoRoot.appendChild(remoteVideoElement);
+    }
+    remoteVideoElement.play();
+  }, [videoRoot, remoteVideoElement]);
+
   return (
     <div style={{
-      width: '200px',
-      height: '150px',
       display: 'inline-block',
-      placeItems: 'center center',
-      borderRadius: '8px',
-      background: 'var(--neutral-4)',
-      color: 'var(--neutral-8)',
-      fontStyle: '500',
-      margin: '4px',
       verticalAlign: 'top',
-      overflow: 'hidden',
+      margin: '4px',
     }}>
-      <Video autoPlay muted style={{
-        width: '100%'
-      }} srcObject={props.stream}></Video>
-      {/* <div style={{
-        display: 'grid',
-        width: '100%',
-        height: '100%',
+      <div style={{
+        width: '200px',
+        height: '150px',
+        display: 'inline-block',
         placeItems: 'center center',
+        borderRadius: '8px',
+        background: isSelf ? 'var(--orange)' : 'var(--neutral-4)',
+        color: 'var(--neutral-8)',
+        fontStyle: '500',
+        overflow: 'hidden',
       }}>
-        {props.name}
-      </div> */}
+        <div ref={setVideoRoot} style={{
+          height: '100%'
+        }}></div>
+      </div>
+      <div style={{
+        textAlign: 'center'
+      }}>{clientName[props.data.clientId]}</div>
     </div>
   )
 }
-
-function Video(props: React.VideoHTMLAttributes<HTMLVideoElement> & {
-  srcObject?: MediaStream
-}) {
-
-  const [ref, setRef] = useState<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    if(ref === null) return;
-    if(props.srcObject === undefined || props.srcObject === null) return;
-    console.log(ref);
-    ref.srcObject = props.srcObject;
-  }, [props.srcObject, ref]);
-
-  const filteredProps = Object.fromEntries(Object.entries(props).filter(([key, value]) => key !== 'srcObject'));
-
-  return <video ref={setRef} {...filteredProps}>{props.children}</video>
-}
-
 
 function CircleButton(props: {
   onClick: MouseEventHandler<HTMLDivElement>,
@@ -202,6 +240,8 @@ function CircleButton(props: {
   color?: string,
   inverted?: boolean,
 }) {
+
+  const primaryColor = props.inverted ? 'var(--neutral-9)' : (props.color ?? 'var(--neutral-4)');
 
   return (
     <div style={{
@@ -213,7 +253,7 @@ function CircleButton(props: {
       boxSizing: 'border-box',
     }}>
       <div onClick={props.onClick} style={{
-        background: props.inverted ? 'var(--neutral-9)' : (props.color ?? 'var(--neutral-4)'),
+        background: primaryColor,
         width: '100%',
         height: '100%',
         borderRadius: '50%',
