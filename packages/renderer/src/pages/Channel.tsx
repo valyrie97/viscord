@@ -41,7 +41,6 @@ export default function Channel(props: ChannelProps) {
         peerId: data.peerId,
         channelId: data.channelId
       }])
-      sfx.joinCall();
     },
     'voice:list'(data: any) {
       if(type !== 'voice') return;
@@ -49,7 +48,6 @@ export default function Channel(props: ChannelProps) {
       setParticipants(data.participants);
     },
     'voice:leave'(data: any) {
-      sfx.leaveCall();
       setParticipants(participants => participants.filter(p => (
         p.channelId !== data.channelId ||
         p.clientId !== data.clientId ||

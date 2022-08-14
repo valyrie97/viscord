@@ -47,9 +47,22 @@ export default function App() {
           --neutral-7: #9ea0a6;
           --neutral-8: #cbcccc;
           --neutral-9: #f8f8f2;
+
+          --green: #4db560;
         }
         a {
           color: var(--cyan);
+        }
+        fieldset {
+          margin: 8px;
+          border-radius: 16px;
+          border-style: solid;
+        }
+        legend {
+          border-width: 2px;
+          border-style: solid;
+          border-radius: 16px;
+          padding: 0px 8px;
         }
       `}</style>
       <div style={{

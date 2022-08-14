@@ -5,6 +5,8 @@ import { IoMdSettings } from 'react-icons/io';
 import useHover from "../hooks/useHover";
 import { useContext } from "react";
 import { SettingsContext } from "../contexts/EphemeralState/EphemeralState";
+import { ClientsListContext } from "../contexts/EphemeralState/ClientsListState";
+import useClientId from "../hooks/useClientId";
 
 export default function Sidebar() {
 
@@ -43,6 +45,10 @@ function TopSidebar() {
 }
 
 function MiniProfile() {
+
+  const { clientName } = useContext(ClientsListContext);
+  const { clientId } = useClientId();
+
   return (
     <div style={{
       fontSize: '16px',
@@ -62,7 +68,7 @@ function MiniProfile() {
           <div style={{
             fontWeight: '400',
             fontSize: '15px',
-          }}>Valerie</div>
+          }}>{clientId && clientName[clientId]}</div>
           <div style={{
             fontWeight: '300',
             fontSize: '13px',

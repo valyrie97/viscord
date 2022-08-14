@@ -5,22 +5,36 @@ export const UserMediaContext = createContext<{
   mediaStream: MediaStream | null;
   enable: () => void;
   disable: () => void;
+  mute: () => void;
+  unmute: () => void;
+  muted: boolean;
+  enableCamera: () => void;
+  disableCamera: () => void;
+  cameraEnabled: boolean;
 }>({
   enabled: false,
   mediaStream: null,
   enable: () => {},
   disable: () => {},
+  mute: () => {},
+  unmute: () => {},
+  muted: false,
+  enableCamera: () => {},
+  disableCamera: () => {},
+  cameraEnabled: false,
 });
 
 export default function UserMediaState(props: any) {
 
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [enabled, setEnabled] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
 
   const enable = useCallback(async () => {
     const newStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: false,
+      video: true,
     });
 
     setMediaStream(newStream);
@@ -36,14 +50,29 @@ export default function UserMediaState(props: any) {
 
     setMediaStream(null);
     setEnabled(false);
-  }, [mediaStream])
+  }, [mediaStream]);
+
+  const mute = () => {
+    if(mediaStream === null) return;
+    mediaStream.getAudioTracks()[0].enabled = false;
+    setMuted(true);
+  }
+
+  const unmute = () => {
+    if(mediaStream === null) return;
+    mediaStream.getAudioTracks()[0].enabled = true;
+    setMuted(false);
+  }
 
   const value = useMemo(() => ({
-    enabled: false,
-    mediaStream: null,
+    enabled,
+    mediaStream,
     enable,
-    disable
-  }), []);
+    disable,
+    mute,
+    unmute,
+    muted
+  }), [enabled, mediaStream, enable, disable, muted]);
 
 
 

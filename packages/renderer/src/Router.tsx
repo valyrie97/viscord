@@ -54,7 +54,8 @@ export default function Router(props: RouterProps) {
               }}>
                 <div style={{
                   height: '50%',
-                  width: '100%'
+                  width: '100%',
+                  overflow: 'auto'
                 }}>
                   <Voice></Voice>
                 </div>
