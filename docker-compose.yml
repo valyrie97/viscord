@@ -4,6 +4,7 @@ services:
   db:
     image: mariadb
     restart: always
+    command: --max_allowed_packet=200M
     environment:
       MARIADB_ROOT_PASSWORD: example
       MARIADB_DATABASE: corner
@@ -20,15 +21,15 @@ services:
     ports:
       - 8080:8080
 
-  coturn:
-    image: coturn/coturn
-    restart: always
-    ports:
-      - 3478:3478
-      - 3478:3478/udp
-      - 5349:5349
-      - 5349:5349/udp
-      - 49160-49200:49160-49200/udp
+  # coturn:
+  #   image: coturn/coturn
+  #   restart: always
+  #   ports:
+  #     - 3478:3478
+  #     - 3478:3478/udp
+  #     - 5349:5349
+  #     - 5349:5349/udp
+  #     - 49160-49200:49160-49200/udp
 
 # docker run -d -p 3478:3478 -p 3478:3478/udp -p 5349:5349 -p 5349:5349/udp -p 49160-49200:49160-49200/udp \
 #        coturn/coturn -n --log-file=stdout \

@@ -26,7 +26,6 @@ export default router({
       err: 'Incorrect username or auth code'
     });
     const validTotp = await validateClientTotp(clientId, totp);
-    console.log(username, clientId, validTotp);
     if(!validTotp) return reply({
       err: 'Incorrect username or auth code'
     });

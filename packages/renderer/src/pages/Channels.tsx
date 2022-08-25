@@ -58,7 +58,7 @@ export default function Channels() {
   useEffect(() => {
     if(channels.length === 0) return;
     if(channel !== null) return;
-    setChannel(channels[1].uid, channels[1].type);
+    setChannel(channels[0].uid, channels[0].type);
   }, [channel, channels]);
 
   useEffect(() => {

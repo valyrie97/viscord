@@ -1,15 +1,40 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { inspect } from 'util';
 import { validateSessionToken } from '../routers/session';
+import chalk from 'chalk';
 
-export function expose(router: Function, port: number) {
-  const wss = new WebSocketServer({
-    port: 3000,
-  }, () => {
-    console.log('ws chat server started on dev.valnet.xyz');
-  });
-  
-  wss.on('connection', (ws) => {
+function str2color(str: string) {
+  const v = str.split('').reduce((acc, val) => acc + val.charCodeAt(0), 0);
+  return (v % 213) + 17
+}
+
+function log(prefix: string, action: string, data: object) {
+  if(action === 'up') return;
+  const strAction = action.split(':').map(v => chalk.ansi256(str2color(v))(v)).join(':');
+  const filteredObject = Object.entries(data)
+    .filter(e => !e[0].startsWith('$'));
+  const keyCount = Object.keys(filteredObject).length;
+  if(keyCount === 0) return console.log(prefix, strAction);
+
+  const stringify = (key: string, value: any) => {
+    switch(typeof value) {
+      case 'string': return chalk.green(key);
+      case 'object':
+        if(value === null) return chalk.blackBright(key);
+        else if(Array.isArray(value)) return chalk.cyanBright(`[${key}]`);
+        else return chalk.magenta(key);
+      case 'number': return chalk.yellow(key);
+      default: return key;
+    }
+  }
+
+  const params = filteredObject.map(([k, v]) => stringify(k, v))
+
+  console.log(prefix, strAction, params.join(', '));
+}
+
+export function expose(router: Function, wss: WebSocketServer) {
+  return function(ws: WebSocket) {
     ws.on('message', async (str) => {
       try {
         const message = JSON.parse(str.toString());
@@ -29,23 +54,21 @@ export function expose(router: Function, port: number) {
           if(typeof data !== 'object') {
             throw new Error('action ' + action + ' payload not an object');
           }
-          console.log('[IN]', action, data);
+          log(chalk.green('>>>'), action, data);
           const _return = await (router(action, data, ws, wss) as unknown as Promise<any>);
           if(_return) {
             try {
               switch(_return.type) {
                 case ResponseType.BROADCAST: {
-                  console.log('[OUT_BROADCAST]', action, _return.data);
+                  log(chalk.cyan('(\u25CF)'), action, _return.data)
+                  // console.log('[OUT_BROADCAST]', action, _return.data);
                   for(const client of wss.clients) {
                     send(client, action, _return.data);
                   }
                   break;
                 }
                 case ResponseType.REPLY: {
-                  console.log('[OUT]', action, inspect(_return.data, {
-                    depth: 0,
-                    colors: true,
-                  }));
+                  log(chalk.cyan('<<<'), action, _return.data);
                   send(ws, action, _return.data);
                   break;
                 }
@@ -63,7 +86,7 @@ export function expose(router: Function, port: number) {
         console.error(e);
       }
     });
-  });
+  }
 }
 
 enum ResponseType {

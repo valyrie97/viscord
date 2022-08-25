@@ -8,7 +8,7 @@ export default function(sqlFile: any, ...args: any[]): Promise<any[] | null> {
       if(!err) return resolve(results);
       console.error(err.errno, err.sqlMessage);
       console.error('--- Query ---');
-      console.error(err.sql);
+      console.error(err.sql?.substring(0, 10000));
       reject(err);
     });
   });

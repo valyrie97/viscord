@@ -34,7 +34,7 @@ const setupServerPackageWatcher = () => {
   let spawnProcess = null;
 
   const processDied = () => {
-    logger.error('Server has died.', {timestamp: true});
+    logger.error('Server has died.', {timestamp: false});
     spawnProcess = null;
   };
 
@@ -56,10 +56,14 @@ const setupServerPackageWatcher = () => {
 
         spawnProcess = spawn(node, ['./index.cjs'], {
           cwd: './packages/server/dist',
+          env: {
+            ...process.env,
+            FORCE_COLOR: "true"
+          }
         });
 
         /** Proxy all logs */
-        spawnProcess.stdout.on('data', d => d.toString().trim() && d.toString().trim().split('\n').forEach(str => logger.info(str, {timestamp: true})));
+        spawnProcess.stdout.on('data', d => d.toString().trim() && d.toString().trim().split('\n').forEach(str => logger.info(str, {timestamp: false})));
 
         /** Proxy error logs but stripe some noisy messages. See {@link stderrFilterPatterns} */
         spawnProcess.stderr.on('data', d => {
@@ -67,7 +71,7 @@ const setupServerPackageWatcher = () => {
           if (!data) return;
           const mayIgnore = stderrFilterPatterns.some((r) => r.test(data));
           if (mayIgnore) return;
-          data.split('\n').forEach(d => logger.error(d, {timestamp: true}));
+          data.split('\n').forEach(d => logger.error(d, {timestamp: false}));
         });
 
         /** Stops the watch script when the application has been quit */
@@ -117,10 +121,15 @@ const setupMainPackageWatcher = ({resolvedUrls}) => {
         }
 
         /** Spawn new electron process */
-        spawnProcess = spawn(String(electronPath), ['.']);
+        spawnProcess = spawn(String(electronPath), ['.'], {
+          env: {
+            ...process.env,
+            FORCE_COLOR: "true"
+          }
+        });
 
         /** Proxy all logs */
-        spawnProcess.stdout.on('data', d => d.toString().trim() && logger.warn(d.toString(), {timestamp: true}));
+        spawnProcess.stdout.on('data', d => d.toString().trim() && logger.warn(d.toString(), {timestamp: false}));
 
         /** Proxy error logs but stripe some noisy messages. See {@link stderrFilterPatterns} */
         spawnProcess.stderr.on('data', d => {
@@ -128,7 +137,7 @@ const setupMainPackageWatcher = ({resolvedUrls}) => {
           if (!data) return;
           const mayIgnore = stderrFilterPatterns.some((r) => r.test(data));
           if (mayIgnore) return;
-          logger.error(data, {timestamp: true});
+          logger.error(data, {timestamp: false});
         });
 
         /** Stops the watch script when the application has been quit */

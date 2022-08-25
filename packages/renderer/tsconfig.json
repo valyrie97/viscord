@@ -8,7 +8,7 @@
     "strict": true,
     "isolatedModules": true,
 
-    "types" : ["node"],
+    "types" : [],
     "baseUrl": ".",
     "paths": {
       "#preload": [

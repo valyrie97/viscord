@@ -7,6 +7,7 @@ import ServerConnection from './components/ServerConnection';
 import EphemeralState from './contexts/EphemeralState/EphemeralState';
 import PersistentState from '/@/contexts/PersistentState/PersistentState';
 import Router from './Router';
+import { ToastContainer } from 'react-toastify';
 
 export default function App() {
   const [transparent, setTransparent] = useState(false);
@@ -64,6 +65,32 @@ export default function App() {
           border-radius: 16px;
           padding: 0px 8px;
         }
+        /* width */
+        ::-webkit-scrollbar {
+          width: 16px;
+          height: 16px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+          background: unset
+        }
+        
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+          background: white;
+          border-radius: 10px;
+          box-shadow: inset 0px -10px -10px 0px var(--neutral-3);
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+
+        ::-webkit-scrollbar-thumb:active {
+          background: var(--neutral-9);
+        }
       `}</style>
       <div style={{
         background: transparent ? 'rgba(0, 0, 0, 0)' : 'var(--neutral-3)',
@@ -78,6 +105,8 @@ export default function App() {
             <Router></Router>
           </EphemeralState>
         </PersistentState>
+
+        <ToastContainer />
       </div>
     </>
   );

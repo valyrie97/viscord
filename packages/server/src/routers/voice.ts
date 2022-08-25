@@ -62,7 +62,6 @@ export default router({
   async leave(data: any) {
     const { $clientId } = data;
     const removed = filterInPlace(participants, (v) => v.clientId !== $clientId);
-    console.log('removed', removed);
     return broadcast(removed[0]);
   },
 })
